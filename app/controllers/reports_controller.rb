@@ -1,4 +1,6 @@
 class ReportsController < ApplicationController
+  before_action :authenticate_user!
+
   def create
     @place = Place.find(params[:place_id])
     @report = Report.new(report_params)

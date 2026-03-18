@@ -1,4 +1,16 @@
 GIT
+  remote: https://github.com/heartcombo/devise.git
+  revision: 5d202775d75ccee8c36a9ed72062f627202e29e2
+  branch: main
+  specs:
+    devise (5.0.3)
+      bcrypt (~> 3.0)
+      orm_adapter (~> 0.1)
+      railties (>= 7.0)
+      responders
+      warden (~> 1.2.3)
+
+GIT
   remote: https://github.com/heartcombo/simple_form.git
   revision: 55bec8024c3b9e7490e48fd127ae66cc122ff9a9
   specs:
@@ -122,12 +134,6 @@ GEM
     debug (1.11.1)
       irb (~> 1.10)
       reline (>= 0.3.8)
-    devise (5.0.3)
-      bcrypt (~> 3.0)
-      orm_adapter (~> 0.1)
-      railties (>= 7.0)
-      responders
-      warden (~> 1.2.3)
     dotenv (3.2.0)
     dotenv-rails (3.2.0)
       dotenv (= 3.2.0)
@@ -458,7 +464,7 @@ DEPENDENCIES
   bundler-audit
   capybara
   debug
-  devise
+  devise!
   dotenv-rails
   font-awesome-sass (~> 6.1)
   geocoder
