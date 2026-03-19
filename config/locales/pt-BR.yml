@@ -2,6 +2,36 @@ pt-BR:
   nav:
     home: "Home"
 
+  auth:
+    shared:
+      eyebrow: "Acesso a conta"
+      side_title: "Tenha mais contexto antes de sair"
+      side_text: "Entre para compartilhar relatos, contribuir com contexto recente e manter a leitura dos lugares mais util para todo mundo."
+      benefit_one_title: "Guarde seu contexto"
+      benefit_one_text: "Acompanhe lugares, revisite locais e decida com base em sinais mais recentes."
+      benefit_two_title: "Ajude a comunidade"
+      benefit_two_text: "Envie relatos quando algo mudar para que a proxima pessoa tenha mais contexto."
+      benefit_three_title: "Saia com mais confianca"
+      benefit_three_text: "Use sinais mais claros e relatos recentes antes de ir."
+    login:
+      title: "Bem-vindo de volta"
+      subtitle: "Entre para revisar lugares, enviar relatos e manter seu contexto sincronizado."
+      submit: "Entrar"
+    signup:
+      title: "Crie sua conta"
+      subtitle: "Junte-se a comunidade para compartilhar relatos e decidir melhor antes de sair."
+      submit: "Criar conta"
+    forgot_password:
+      title: "Redefina sua senha"
+      subtitle: "Digite seu email e enviaremos as instrucoes de recuperacao."
+      submit: "Enviar instrucoes"
+    links:
+      login: "Entrar"
+      signup: "Criar conta"
+      forgot_password: "Esqueceu sua senha?"
+      confirmation: "Nao recebeu as instrucoes de confirmacao?"
+      unlock: "Nao recebeu as instrucoes de desbloqueio?"
+
   home:
     hero:
       badge: "Seguranca local com apoio da comunidade"

@@ -1,6 +1,36 @@
 en:
   hello: "Hello world"
 
+  auth:
+    shared:
+      eyebrow: "Account access"
+      side_title: "Stay one step ahead before you go"
+      side_text: "Sign in to share reports, contribute context, and keep your local read more useful for everyone."
+      benefit_one_title: "Save your context"
+      benefit_one_text: "Track places, revisit locations, and keep your decisions grounded in recent signals."
+      benefit_two_title: "Help the community"
+      benefit_two_text: "Submit reports when something changes so the next person has better context too."
+      benefit_three_title: "Move with confidence"
+      benefit_three_text: "Use clearer place signals and recent reports before heading out."
+    login:
+      title: "Welcome back"
+      subtitle: "Sign in to review places, submit reports, and keep your context synced."
+      submit: "Log in"
+    signup:
+      title: "Create your account"
+      subtitle: "Join the community to share reports and make place decisions with better context."
+      submit: "Sign up"
+    forgot_password:
+      title: "Reset your password"
+      subtitle: "Enter your email and we will send recovery instructions."
+      submit: "Send instructions"
+    links:
+      login: "Log in"
+      signup: "Sign up"
+      forgot_password: "Forgot your password?"
+      confirmation: "Didn't receive confirmation instructions?"
+      unlock: "Didn't receive unlock instructions?"
+
   nav:
     home: "Home"
 
