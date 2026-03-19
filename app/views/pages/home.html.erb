@@ -8,7 +8,7 @@
           </div>
 
           <h1 class="hero-title">
-            <%= t("home.hero.title_html") %>
+            <%= t("home.hero.title_html").html_safe %>
           </h1>
 
           <p class="hero-subtitle">
@@ -16,18 +16,9 @@
           </p>
 
           <div class="hero-actions">
-            <%= form_with url: places_path, method: :get, local: true, class: "hero-search-form" do %>
-              <div class="search-input-group">
-                <span class="search-icon">📍</span>
-
-                <%= text_field_tag :query,
-                                   params[:query],
-                                   class: "hero-search-input",
-                                   placeholder: t("home.hero.search_placeholder") %>
-
-                <%= submit_tag t("home.hero.search_button"), class: "hero-search-button" %>
-              </div>
-            <% end %>
+            <div class="home-search-wrapper">
+              <%= render "shared/search_bar" %>
+            </div>
 
             <p class="search-helper-text">
               <%= t("home.hero.search_helper") %>
