@@ -93,6 +93,9 @@
     <div class="map-column">
       <div class="map-wrapper">
         <div id="map"></div>
+        <button class="geolocate-button" data-action="click->map#geolocate">
+          📍
+        </button>
 
         <div hidden>
           <% @places.each do |place| %>
