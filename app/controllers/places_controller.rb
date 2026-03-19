@@ -1,6 +1,13 @@
 class PlacesController < ApplicationController
   def index
-    @places = Place.all
+    query = params[:query].to_s.strip
+
+    if query.present?
+      sql_query = "%#{query}%"
+      @places = Place.where("name ILIKE :query OR address ILIKE :query", query: sql_query)
+    else
+      @places = Place.all
+    end
 
     @markers = @places.select { |place| place.latitude.present? && place.longitude.present? }.map do |place|
       {
@@ -17,7 +24,7 @@ class PlacesController < ApplicationController
 
   def show
     @place = Place.find(params[:id])
-    @reports = @place.reports.includes(:user)
+    @reports = @place.reports
     @report = Report.new
   end
 end

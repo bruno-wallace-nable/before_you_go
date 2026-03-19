@@ -1,24 +1,58 @@
-<%= link_to " ← Back to map ", places_path %>
+<% query = params[:query].to_s.strip %>
+<% portuguese = I18n.locale.to_s == "pt-BR" %>
+<% back_label =
+     if query.present?
+       portuguese ? "← Voltar aos resultados" : "← Back to results"
+     else
+       portuguese ? "← Voltar para o mapa" : "← Back to map"
+     end %>
+<% category_options =
+     if portuguese
+       ["Ambiente", "Segurança", "Preconceito", "Assédio", "Violência", "Outros"]
+     else
+       ["Environment", "Safety", "Discrimination", "Harassment", "Violence", "Other"]
+     end %>
+<% status_options =
+     if portuguese
+       [["Positivo", "positive"], ["Negativo", "negative"]]
+     else
+       [["Positive", "positive"], ["Negative", "negative"]]
+     end %>
+
+<%= link_to(
+      back_label,
+      query.present? ? places_path(query: query) : places_path
+    ) %>
 
 <h1><%= @place.name %></h1>
 <p><%= @place.address %></p>
-<p>Status: <%= @place.status_label %></p>
+<p><%= portuguese ? "Status:" : "Status:" %> <%= @place.status_label %></p>
 
-<h2>Reports</h2>
+<h2><%= portuguese ? "Relatos" : "Reports" %></h2>
 
 <% if @reports.empty? %>
-  <p>No reports yet.</p>
+  <p><%= portuguese ? "Ainda não há relatos." : "No reports yet." %></p>
 <% else %>
   <% @reports.each do |report| %>
     <div>
-      <p><strong><%= report.category %></strong> — <%= report.status %></p>
+      <p>
+        <strong><%= report.category %></strong>
+        —
+        <%= if report.status == "positive"
+              portuguese ? "Positivo" : "Positive"
+            elsif report.status == "negative"
+              portuguese ? "Negativo" : "Negative"
+            else
+              report.status
+            end %>
+      </p>
       <p><%= report.description %></p>
       <p><small><%= report.user.email %></small></p>
     </div>
   <% end %>
 <% end %>
 
-<h2>Add a report</h2>
+<h2><%= portuguese ? "Adicionar relato" : "Add a report" %></h2>
 
 <% if user_signed_in? %>
   <%= form_with model: @report, url: place_reports_path(@place) do |f| %>
@@ -31,29 +65,25 @@
     <% end %>
 
     <div>
-      <%= f.label :category %>
-      <%= f.select :category, [
-        "Ambiente",
-        "Seguranca",
-        "Preconceito",
-        "Assédio",
-        "Violência",
-        "Outros"
-        ] %>
+      <%= f.label :category, (portuguese ? "Categoria" : "Category") %>
+      <%= f.select :category, category_options %>
     </div>
 
     <div>
-      <%= f.label :status %>
-      <%= f.select :status, ["positive", "negative"] %>
+      <%= f.label :status, (portuguese ? "Status" : "Status") %>
+      <%= f.select :status, status_options %>
     </div>
 
     <div>
-      <%= f.label :description %>
+      <%= f.label :description, (portuguese ? "Descrição" : "Description") %>
       <%= f.text_area :description %>
     </div>
 
-    <%= f.submit "Submit report" %>
+    <%= f.submit(portuguese ? "Enviar relato" : "Submit report") %>
   <% end %>
 <% else %>
-  <p><%= link_to "Sign in", new_user_session_path %> to add a report.</p>
+  <p>
+    <%= link_to(portuguese ? "Entrar" : "Sign in", new_user_session_path) %>
+    <%= portuguese ? " para adicionar um relato." : " to add a report." %>
+  </p>
 <% end %>

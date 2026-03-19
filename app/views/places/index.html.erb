@@ -1,3 +1,9 @@
+<% query = params[:query].to_s.strip %>
+<% search_active = query.present? %>
+<% portuguese = I18n.locale.to_s == "pt-BR" %>
+<% result_count = @places.size %>
+<% detail_params = search_active ? { query: query } : {} %>
+
 <div class="search-results-page">
   <div class="search-results-container"
        data-controller="map"
@@ -6,24 +12,77 @@
 
     <!-- LEFT COLUMN: PLACES LIST -->
     <div class="places-list-column">
+      <%= render "shared/search_bar" %>
+
       <div class="places-list-header">
-        <h1>Places</h1>
-        <p>Check recent reports before you go.</p>
+        <% if search_active %>
+          <% header_text = portuguese ? "Resultados para “#{query}”" : "Results for “#{query}”" %>
+          <% results_text =
+               if result_count.zero?
+                 portuguese ? "Nenhum local encontrado." : "No places found."
+               elsif result_count == 1
+                 portuguese ? "1 local encontrado." : "1 place found."
+               else
+                 portuguese ? "#{result_count} locais encontrados." : "#{result_count} places found."
+               end %>
+
+          <h1><%= header_text %></h1>
+          <p><%= results_text %></p>
+        <% else %>
+          <h1><%= portuguese ? "Locais" : "Places" %></h1>
+          <p>
+            <%= portuguese ? "Confira relatos recentes antes de sair." : "Check recent reports before you go." %>
+          </p>
+        <% end %>
       </div>
 
       <div class="places-list">
-        <% @places.each do |place| %>
-          <div class="place-card place-card--<%= place.status %>"
-               data-action="click->map#flyTo"
-               data-lat="<%= place.latitude %>"
-               data-lng="<%= place.longitude %>"
-               data-place-id="<%= place.id %>">
-            <div class="place-card-header">
-              <h2><%= place.name %></h2>
-              <span class="place-status"><%= place.status_label %></span>
+        <% if @places.any? %>
+          <% @places.each do |place| %>
+            <div class="place-card place-card--<%= place.status %>"
+                 data-action="click->map#flyTo"
+                 data-lat="<%= place.latitude %>"
+                 data-lng="<%= place.longitude %>"
+                 data-place-id="<%= place.id %>">
+              <div class="place-card-header">
+                <h2><%= place.name %></h2>
+                <span class="place-status"><%= place.status_label %></span>
+              </div>
+
+              <p class="place-address"><%= place.address %></p>
+
+              <%= link_to(
+                    portuguese ? "Ver detalhes" : "View details",
+                    place_path(place, detail_params),
+                    class: "btn-details"
+                  ) %>
             </div>
-            <p class="place-address"><%= place.address %></p>
-            <%= link_to "Ver detalhes", place_path(place), class: "btn-details" %>
+          <% end %>
+        <% else %>
+          <div class="place-card place-card-empty">
+            <div class="place-card-header">
+              <h2>
+                <%= if search_active
+                      portuguese ? "Nenhum resultado encontrado" : "No results found"
+                    else
+                      portuguese ? "Nenhum local disponível" : "No places available"
+                    end %>
+              </h2>
+            </div>
+
+            <p class="place-address">
+              <%= if search_active
+                    portuguese ? "Tente buscar por outro nome ou endereço." : "Try searching for a different name or address."
+                  else
+                    portuguese ? "Volte mais tarde para conferir novos locais." : "Check back later for new places."
+                  end %>
+            </p>
+
+            <%= link_to(
+                  search_active ? (portuguese ? "Ver todos os locais" : "View all places") : (portuguese ? "Atualizar lista" : "Refresh list"),
+                  places_path,
+                  class: "btn-details"
+                ) %>
           </div>
         <% end %>
       </div>
@@ -32,7 +91,6 @@
     <!-- RIGHT COLUMN: MAP -->
     <div class="map-column">
       <div class="map-wrapper">
-
         <div id="map"></div>
 
         <div hidden>
@@ -44,6 +102,5 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
