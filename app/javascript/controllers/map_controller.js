@@ -33,6 +33,17 @@ export default class extends Controller {
       return { placeId: marker.id, marker: mapMarker }
     })
 
+    // Centraliza no lugar buscado via home (lat/lng na URL)
+    const params = new URLSearchParams(window.location.search)
+    const lat = parseFloat(params.get("lat"))
+    const lng = parseFloat(params.get("lng"))
+    if (!isNaN(lat) && !isNaN(lng)) {
+      this.map.once("load", () => {
+        this.map.flyTo({ center: [lng, lat], zoom: 15, speed: 1.5 })
+        new mapboxgl.Marker({ color: "#3b82f6" }).setLngLat([lng, lat]).addTo(this.map)
+      })
+    }
+
     // Registra clique no mapa para reverse geocoding
     this.map.on("click", (e) => this.clickMap(e))
 
@@ -90,24 +101,30 @@ export default class extends Controller {
     // Verifica se o browser suporta geolocalização
     if (!navigator.geolocation) return
 
-    navigator.geolocation.getCurrentPosition(position => {
-      const lat = position.coords.latitude
-      const lng = position.coords.longitude
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
 
-      // Remove pin de localização anterior se existir
-      if (this.userMarker) this.userMarker.remove()
+        // Remove pin de localização anterior se existir
+        if (this.userMarker) this.userMarker.remove()
 
-      // Cria pin roxo para indicar a posição do usuário
-      this.userMarker = new mapboxgl.Marker({ color: "#8b5cf6" })
-        .setLngLat([lng, lat])
-        .addTo(this.map)
+        // Cria pin roxo para indicar a posição do usuário
+        this.userMarker = new mapboxgl.Marker({ color: "#8b5cf6" })
+          .setLngLat([lng, lat])
+          .addTo(this.map)
 
-      this.map.flyTo({
-        center: [lng, lat],
-        zoom: 14,
-        speed: 1.5
-      })
-    })
+        this.map.flyTo({
+          center: [lng, lat],
+          zoom: 14,
+          speed: 1.5
+        })
+      },
+      error => {
+        console.error("Geolocation error:", error.code, error.message)
+      },
+      { timeout: 10000 }
+    )
   }
 
   // Escapa caracteres HTML para evitar XSS em conteúdo inserido no popup

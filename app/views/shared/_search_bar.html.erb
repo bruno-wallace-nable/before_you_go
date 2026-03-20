@@ -1,7 +1,6 @@
 <div class="search-bar"
      data-controller="search"
-     data-search-mapbox-key-value="<%= ENV['MAPBOX_API_KEY'] %>"
-     data-action="search:placeSelected->map#zoomToPlace@window">
+     data-search-mapbox-key-value="<%= ENV['MAPBOX_API_KEY'] %>">
   <%= form_with url: places_path, method: :get, local: true, class: "search-form" do |f| %>
     <div class="search-input-wrapper">
       <%= f.text_field :query,
