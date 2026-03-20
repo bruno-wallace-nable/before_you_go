@@ -10,9 +10,14 @@
             class: "search-input",
             data: {
               search_target: "input",
-              action: "input->search#search"
+              action: "input->search#search keydown->search#onKeydown"
             },
+            autocomplete: "off",
+            role: "combobox",
             aria: {
+              autocomplete: "list",
+              controls: "search-suggestions-list",
+              expanded: "false",
               label: I18n.locale.to_s == "pt-BR" ? "Buscar local ou endereço" : "Search for place or address"
             } %>
 
@@ -27,6 +32,6 @@
     </div>
 
     <!-- Sugestões em tempo real -->
-    <div data-search-target="suggestions" class="search-suggestions"></div>
+    <div id="search-suggestions-list" data-search-target="suggestions" class="search-suggestions" role="listbox" aria-live="polite"></div>
   <% end %>
 </div>
