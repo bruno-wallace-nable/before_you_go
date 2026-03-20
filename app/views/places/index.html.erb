@@ -3,6 +3,9 @@
 <% portuguese = I18n.locale.to_s == "pt-BR" %>
 <% result_count = @places.size %>
 <% detail_params = search_active ? { query: query } : {} %>
+<% safe_count = @places.count { |place| place.status == "positive" } %>
+<% alert_count = @places.count { |place| place.status == "neutral" } %>
+<% avoid_count = @places.count { |place| place.status == "negative" } %>
 
 <div class="search-results-page">
   <div class="search-results-container"
@@ -11,53 +14,107 @@
        data-markers="<%= @markers.to_json %>"
        data-action="search:placeSelected@window->map#zoomToPlace">
 
-    <!-- LEFT COLUMN: PLACES LIST -->
     <div class="places-list-column">
-      <%= render "shared/search_bar" %>
+      <section class="places-search-shell">
+        <div class="places-search-intro">
+          <span class="places-eyebrow"><%= portuguese ? "Explorar lugares" : "Explore places" %></span>
 
-      <div class="places-list-header">
-        <% if search_active %>
-          <% header_text = portuguese ? "Resultados para “#{query}”" : "Results for “#{query}”" %>
-          <% results_text =
-               if result_count.zero?
-                 portuguese ? "Nenhum local encontrado." : "No places found."
-               elsif result_count == 1
-                 portuguese ? "1 local encontrado." : "1 place found."
-               else
-                 portuguese ? "#{result_count} locais encontrados." : "#{result_count} places found."
-               end %>
+          <% if search_active %>
+            <% header_text = portuguese ? "Resultados para “#{query}”" : "Results for “#{query}”" %>
+            <% results_text =
+                 if result_count.zero?
+                   portuguese ? "Nenhum local encontrado." : "No places found."
+                 elsif result_count == 1
+                   portuguese ? "1 local encontrado." : "1 place found."
+                 else
+                   portuguese ? "#{result_count} locais encontrados." : "#{result_count} places found."
+                 end %>
 
-          <h1><%= header_text %></h1>
-          <p><%= results_text %></p>
-        <% else %>
-          <h1><%= portuguese ? "Locais" : "Places" %></h1>
-          <p>
-            <%= portuguese ? "Confira relatos recentes antes de sair." : "Check recent reports before you go." %>
-          </p>
-        <% end %>
-      </div>
+            <h1><%= header_text %></h1>
+            <p><%= results_text %></p>
+          <% else %>
+            <h1><%= portuguese ? "Decida com mais contexto antes de ir" : "Decide with more context before you go" %></h1>
+            <p><%= portuguese ? "Pesquise um lugar, revise o sinal atual e compare rapidamente os locais no mapa." : "Search for a place, review the current signal, and compare locations quickly on the map." %></p>
+          <% end %>
+        </div>
+
+        <%= render "shared/search_bar" %>
+
+        <div class="places-signal-strip">
+          <div class="places-signal-chip places-signal-chip--positive">
+            <strong><%= safe_count %></strong>
+            <span><%= portuguese ? "seguros" : "safe" %></span>
+          </div>
+
+          <div class="places-signal-chip places-signal-chip--neutral">
+            <strong><%= alert_count %></strong>
+            <span><%= portuguese ? "atenção" : "attention" %></span>
+          </div>
+
+          <div class="places-signal-chip places-signal-chip--negative">
+            <strong><%= avoid_count %></strong>
+            <span><%= portuguese ? "evitar" : "avoid" %></span>
+          </div>
+        </div>
+      </section>
 
       <div class="places-list">
         <% if @places.any? %>
           <% @places.each do |place| %>
-            <div class="place-card place-card--<%= place.status %>"
-                 data-action="click->map#flyTo"
-                 data-lat="<%= place.latitude %>"
-                 data-lng="<%= place.longitude %>"
-                 data-place-id="<%= place.id %>">
-              <div class="place-card-header">
-                <h2><%= place.name %></h2>
-                <span class="place-status"><%= place.status_label %></span>
+            <% status_key = place.status %>
+            <% status_label =
+                 case status_key
+                 when "positive" then (portuguese ? "Seguro" : "Safe")
+                 when "negative" then (portuguese ? "Evitar" : "Avoid")
+                 else
+                   portuguese ? "Atenção" : "Attention"
+                 end %>
+            <% report_count = place.reports.size %>
+            <% report_text =
+                 if portuguese
+                   report_count == 1 ? "1 relato" : "#{report_count} relatos"
+                 else
+                   report_count == 1 ? "1 report" : "#{report_count} reports"
+                 end %>
+
+            <article class="place-card place-card--<%= status_key %>"
+                     data-action="click->map#flyTo"
+                     data-lat="<%= place.latitude %>"
+                     data-lng="<%= place.longitude %>"
+                     data-place-id="<%= place.id %>">
+              <div class="place-card-top">
+                <div class="place-card-copy">
+                  <div class="place-card-header">
+                    <h2><%= place.name %></h2>
+                    <span class="place-status"><%= status_label %></span>
+                  </div>
+
+                  <p class="place-address"><%= place.address %></p>
+                </div>
+
+                <div class="place-card-meta">
+                  <span class="place-report-count"><%= report_text %></span>
+                </div>
               </div>
 
-              <p class="place-address"><%= place.address %></p>
+              <div class="place-card-bottom">
+                <p class="place-card-helper">
+                  <%= if status_key == "positive"
+                        portuguese ? "Relatos recentes mais favoráveis para este local." : "Recent reports are more favorable for this place."
+                      elsif status_key == "negative"
+                        portuguese ? "Vale revisar os relatos antes de seguir." : "Worth reviewing recent reports before going."
+                      else
+                        portuguese ? "Ainda não há sinal suficiente para decidir com segurança." : "There is not enough signal yet for a confident decision."
+                      end %>
+                </p>
 
-              <%= link_to(
-                    portuguese ? "Ver detalhes" : "View details",
-                    place_path(place, detail_params),
-                    class: "btn-details"
-                  ) %>
-            </div>
+                <%= link_to(
+                      portuguese ? "Ver detalhes" : "View details",
+                      place_path(place, detail_params),
+                      class: "btn-details"
+                    ) %>
+              </div>
+            </article>
           <% end %>
         <% else %>
           <div class="place-card place-card-empty">
@@ -89,20 +146,30 @@
       </div>
     </div>
 
-    <!-- RIGHT COLUMN: MAP -->
     <div class="map-column">
-      <div class="map-wrapper">
-        <div id="map"></div>
-        <button class="geolocate-button" data-action="click->map#geolocate">
-          📍
-        </button>
+      <div class="map-panel">
+        <div class="map-panel-header">
+          <div>
+            <span class="places-eyebrow"><%= portuguese ? "Mapa ao vivo" : "Live map" %></span>
+            <h2><%= portuguese ? "Compare locais visualmente" : "Compare places visually" %></h2>
+          </div>
 
-        <div hidden>
-          <% @places.each do |place| %>
-            <div data-map-target="popup" data-place-id="<%= place.id %>">
-              <%= render "places/popup", place: place %>
-            </div>
-          <% end %>
+          <p><%= portuguese ? "Clique em um card para focar no mapa ou use o botão de localização." : "Click a card to focus the map or use the location button." %></p>
+        </div>
+
+        <div class="map-wrapper">
+          <div id="map"></div>
+          <button class="geolocate-button" data-action="click->map#geolocate">
+            📍
+          </button>
+
+          <div hidden>
+            <% @places.each do |place| %>
+              <div data-map-target="popup" data-place-id="<%= place.id %>">
+                <%= render "places/popup", place: place %>
+              </div>
+            <% end %>
+          </div>
         </div>
       </div>
     </div>
