@@ -12,6 +12,26 @@ export default class extends Controller {
 
     this.handleDocumentClick = this.handleDocumentClick.bind(this)
     document.addEventListener("click", this.handleDocumentClick)
+
+    this.suggestionsTarget.addEventListener("mouseover", (e) => {
+      const btn = e.target.closest("[data-suggestion-index]")
+      if (!btn) return
+      const index = parseInt(btn.dataset.suggestionIndex)
+      if (index === this.activeIndex) return
+      this.activeIndex = index
+      this.suggestionsTarget.querySelectorAll(".suggestion-item").forEach((el, i) => {
+        el.classList.toggle("suggestion-item-active", i === index)
+        el.setAttribute("aria-selected", i === index ? "true" : "false")
+      })
+    })
+
+    this.suggestionsTarget.addEventListener("mousedown", (e) => {
+      const btn = e.target.closest("[data-suggestion-index]")
+      if (!btn) return
+      e.preventDefault()
+      const index = parseInt(btn.dataset.suggestionIndex)
+      this.selectPlace(this.features[index])
+    })
   }
 
   disconnect() {
@@ -109,14 +129,16 @@ export default class extends Controller {
       button.textContent = feature.place_name
       button.setAttribute("role", "option")
       button.setAttribute("aria-selected", index === this.activeIndex ? "true" : "false")
-      button.addEventListener("mouseenter", () => {
-        this.activeIndex = index
-        this.renderSuggestions()
-      })
-      button.addEventListener("click", () => this.selectPlace(feature))
+      button.dataset.suggestionIndex = index
 
       this.suggestionsTarget.appendChild(button)
     })
+  }
+
+  clearSuggestions() {
+    this.features = []
+    this.activeIndex = -1
+    this.suggestionsTarget.innerHTML = ""
   }
 
   renderMessage(message) {
@@ -133,15 +155,17 @@ export default class extends Controller {
     this.clearSuggestions()
     this.setState("idle")
 
-    this.dispatch("placeSelected", {
-      detail: { lat, lng, name }
-    })
-  }
+    const mapEl = document.querySelector('[data-controller~="map"]')
 
-  clearSuggestions() {
-    this.features = []
-    this.activeIndex = -1
-    this.suggestionsTarget.innerHTML = ""
+    if (mapEl) {
+      this.dispatch("placeSelected", {
+        detail: { lat, lng, name }
+      })
+    } else {
+      const locale = document.documentElement.lang || ""
+      const prefix = locale ? `/${locale}` : ""
+      window.location.href = `${prefix}/places?lat=${lat}&lng=${lng}`
+    }
   }
 
   setState(state) {
