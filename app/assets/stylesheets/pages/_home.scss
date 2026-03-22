@@ -312,15 +312,12 @@
   position: absolute;
   inset: 0;
   z-index: 0;
+  background-color: #dfe8f7;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   transform: scale(1);
   transition: transform 0.6s ease, filter 0.6s ease;
-}
-
-.hero-live-map .leaflet-pane,
-.hero-live-map .leaflet-control,
-.hero-live-map .leaflet-top,
-.hero-live-map .leaflet-bottom {
-  z-index: 1 !important;
 }
 
 .hero-map-scrim {
