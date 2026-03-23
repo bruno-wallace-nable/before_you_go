@@ -24,9 +24,8 @@ class PlacesController < ApplicationController
 
   def show
     @place = Place.find(params[:id])
-    @reports = @place.reports
-    @recent_reports = @place.reports.order(created_at: :desc).limit(4)
-    @report = Report.new
+    @reports = @place.reports.order(created_at: :desc)
+    @report = @place.reports.build
   end
 
   def create

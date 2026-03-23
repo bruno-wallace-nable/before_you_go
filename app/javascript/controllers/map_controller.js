@@ -156,24 +156,45 @@ export default class extends Controller {
       .then(data => {
         const address = data.features[0]?.place_name || ""
 
-        new mapboxgl.Popup()
-          .setLngLat(event.lngLat)
-          .setHTML(`
-            <strong>${this.escape(name)}</strong>
-            ${category ? `<p><em>${this.escape(category)}</em></p>` : ""}
-            <p>${this.escape(address)}</p>
-            <a
-              href="#"
-              class="btn-add-place"
-              data-action="click->map#addPlace"
-              data-name="${this.escape(name)}"
-              data-address="${this.escape(address)}"
-              data-lat="${lat}"
-              data-lng="${lng}">
-              + Adicionar este local
-            </a>
-          `)
-          .addTo(this.map)
+        new mapboxgl.Popup({
+  closeButton: true,
+  closeOnClick: true,
+  maxWidth: "420px"
+})
+  .setLngLat(event.lngLat)
+  .setHTML(`
+    <div class="mapbox-popup-card mapbox-popup-card--empty">
+      <div class="mapbox-popup-card__header mapbox-popup-card__header--stack">
+        <div>
+          <span class="mapbox-popup-card__eyebrow">Local encontrado</span>
+          <h3 class="mapbox-popup-card__title">${this.escape(name)}</h3>
+          ${category ? `<p class="mapbox-popup-card__category">${this.escape(category)}</p>` : ""}
+        </div>
+        <span class="mapbox-popup-card__badge mapbox-popup-card__badge--neutral">Sem reviews</span>
+      </div>
+
+      <p class="mapbox-popup-card__address">${this.escape(address)}</p>
+
+      <div class="mapbox-popup-card__empty">
+        <p class="mapbox-popup-card__empty-title">Ainda não há reviews</p>
+        <p class="mapbox-popup-card__empty-text">
+          Seja a primeira pessoa a adicionar contexto para este local.
+        </p>
+      </div>
+
+      <button
+         type="button"
+         class="mapbox-popup-card__button"
+         data-action="click->map#addPlace"
+         data-name="${this.escape(name)}"
+         data-address="${this.escape(address)}"
+         data-lat="${lat}"
+         data-lng="${lng}">
+         Adicionar primeira review
+      </button>
+    </div>
+  `)
+  .addTo(this.map)
       })
       .catch(err => console.error("Erro no reverse geocoding:", err))
   }

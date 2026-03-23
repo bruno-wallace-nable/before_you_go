@@ -81,9 +81,7 @@
           </div>
 
           <div class="place-hero-metric">
-            <strong>
-              <%= latest_report_label %>
-            </strong>
+            <strong><%= latest_report_label %></strong>
             <span><%= portuguese ? "última atualização" : "latest update" %></span>
           </div>
         </div>
@@ -177,28 +175,23 @@
         </main>
 
         <aside class="place-detail-sidebar">
-          <%= turbo_frame_tag "report-form" do %>
-            <section class="place-action-card">
-              <span class="place-section-eyebrow"><%= portuguese ? "Contribuir" : "Contribute" %></span>
-              <h2><%= portuguese ? "Adicionar um relato" : "Add a report" %></h2>
-              <p><%= portuguese ? "Compartilhe contexto recente para manter a leitura deste lugar mais útil para outras pessoas." : "Share recent context to keep this place read more useful for other people." %></p>
+          <div class="place-action-card place-action-card--simple">
+            <span class="place-section-eyebrow"><%= portuguese ? "Contribuir" : "Contribute" %></span>
+            <h2><%= portuguese ? "Adicionar um relato" : "Add a report" %></h2>
+            <p>
+              <%= if portuguese
+                    "Compartilhe um contexto recente para manter a leitura deste lugar mais útil para outras pessoas."
+                  else
+                    "Share recent context to keep this place reading more useful for other people."
+                  end %>
+            </p>
 
-              <% if user_signed_in? %>
-                <%= form_with model: @report,
-                  url: place_reports_path(@place),
-                  data: { turbo: false },
-                  class: "place-report-form" do |f| %>
-                  <% if @report.errors.any? %>
-                    <div class="place-form-errors">
-                      <% @report.errors.full_messages.each do |msg| %>
-                        <p><%= msg %></p>
-                      <% end %>
-                    </div>
-                  <% end %>
-
-                  <div class="place-form-group">
-                    <%= f.label :category, (portuguese ? "Categoria" : "Category") %>
-                    <%= f.select :category, category_options, {}, class: "place-form-control" %>
+            <% if user_signed_in? %>
+              <%= form_with model: [@place, @report], local: true, class: "place-report-form-simple" do |f| %>
+                <% if @report.errors.any? %>
+                  <div class="place-form-errors">
+                    <p><strong><%= portuguese ? "Não foi possível enviar seu relato." : "We couldn't submit your report." %></strong></p>
+                    <p><%= @report.errors.full_messages.to_sentence %></p>
                   </div>
 
                   <div class="place-form-group">
@@ -213,14 +206,34 @@
 
                   <%= f.submit(portuguese ? "Enviar relato" : "Submit report", class: "place-submit-button") %>
                 <% end %>
-              <% else %>
-                <div class="place-signin-card">
-                  <p><%= portuguese ? "Entre para compartilhar um relato e ajudar a comunidade com contexto recente." : "Sign in to share a report and help the community with recent context." %></p>
-                  <%= link_to(portuguese ? "Entrar" : "Sign in", new_user_session_path, class: "place-submit-button") %>
+
+                <div class="place-form-group">
+                  <%= f.label :category, portuguese ? "Categoria" : "Category" %>
+                  <%= f.select :category, category_options, {}, class: "place-form-control" %>
                 </div>
+
+                <div class="place-form-group">
+                  <%= f.label :status, portuguese ? "Tipo do relato" : "Report type" %>
+                  <%= f.select :status, status_options, {}, class: "place-form-control" %>
+                </div>
+
+                <div class="place-form-group">
+                  <%= f.label :description, portuguese ? "Descrição" : "Description" %>
+                  <%= f.text_area :description,
+                        rows: 6,
+                        class: "place-form-control place-form-control--textarea",
+                        placeholder: (portuguese ? "Descreva o que você percebeu neste local." : "Describe what you noticed in this place.") %>
+                </div>
+
+                <%= f.submit (portuguese ? "Enviar relato" : "Send report"), class: "place-submit-button" %>
               <% end %>
-            </section>
-          <% end %>
+            <% else %>
+              <div class="place-signin-card">
+                <p><%= portuguese ? "Faça login para compartilhar um relato e contribuir com o mapa da comunidade." : "Sign in to share a report and contribute to the community map." %></p>
+                <%= link_to (portuguese ? "Entrar para contribuir" : "Sign in to contribute"), new_user_session_path, class: "place-submit-button" %>
+              </div>
+            <% end %>
+          </div>
         </aside>
       </div>
     </div>
