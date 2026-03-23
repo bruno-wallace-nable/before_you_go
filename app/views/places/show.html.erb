@@ -167,45 +167,87 @@
         </main>
 
         <aside class="place-detail-sidebar">
-          <section class="place-action-card">
-            <span class="place-section-eyebrow"><%= portuguese ? "Contribuir" : "Contribute" %></span>
-            <h2><%= portuguese ? "Adicionar um relato" : "Add a report" %></h2>
-            <p><%= portuguese ? "Compartilhe contexto recente para manter a leitura deste lugar mais útil para outras pessoas." : "Share recent context to keep this place read more useful for other people." %></p>
+          <div class="place-action-card">
+            <span class="place-section-eyebrow">Contribuição da comunidade</span>
+            <h2>Adicionar um relato</h2>
+            <p>
+              Compartilhe um contexto recente e ajude outras pessoas a decidir com mais segurança antes de sair.
+            </p>
 
             <% if user_signed_in? %>
-              <%= form_with model: @report, url: place_reports_path(@place), class: "place-report-form" do |f| %>
-                <% if @report.errors.any? %>
+              <%= form_with model: [@place, @review], local: true, class: "place-report-form" do |f| %>
+                <% if @review.errors.any? %>
                   <div class="place-form-errors">
-                    <% @report.errors.full_messages.each do |msg| %>
-                      <p><%= msg %></p>
-                    <% end %>
+                    <p><strong>Não foi possível enviar seu relato.</strong></p>
+                    <p><%= @review.errors.full_messages.to_sentence %></p>
                   </div>
                 <% end %>
 
-                <div class="place-form-group">
-                  <%= f.label :category, (portuguese ? "Categoria" : "Category") %>
-                  <%= f.select :category, category_options, {}, class: "place-form-control" %>
+                <div class="place-form-section">
+                  <div class="place-form-section__header">
+                    <span class="place-form-section__step">1</span>
+                    <div>
+                      <h3>Classifique o local</h3>
+                      <p>Escolha o tipo de relato e o sinal mais adequado para este momento.</p>
+                    </div>
+                  </div>
+
+                  <div class="place-form-grid">
+                    <div class="place-form-group">
+                      <%= f.label :category, "Categoria do relato" %>
+                      <span class="place-form-help">Ex.: segurança, assédio, furto, ambiente, atendimento.</span>
+                      <%= f.select :category, review_category_options, {}, class: "place-form-control" %>
+                    </div>
+
+                    <div class="place-form-group">
+                      <%= f.label :status, "Sinal do local" %>
+                      <span class="place-form-help">Selecione como este local deve ser interpretado agora.</span>
+
+                      <div class="place-status-selector">
+                        <label class="place-status-option place-status-option--positive">
+                          <%= f.radio_button :status, "positive" %>
+                          <span>🟢 Seguro</span>
+                        </label>
+
+                        <label class="place-status-option place-status-option--negative">
+                          <%= f.radio_button :status, "negative" %>
+                          <span>🔴 Evitar</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div class="place-form-group">
-                  <%= f.label :status, (portuguese ? "Tipo do relato" : "Report type") %>
-                  <%= f.select :status, status_options, {}, class: "place-form-control" %>
+                <div class="place-form-section">
+                  <div class="place-form-section__header">
+                    <span class="place-form-section__step">2</span>
+                    <div>
+                      <h3>Conte o contexto</h3>
+                      <p>Seja específico. Relatos objetivos ajudam mais do que comentários genéricos.</p>
+                    </div>
+                  </div>
+
+                  <div class="place-form-group">
+                    <%= f.label :description, "Descrição" %>
+                    <span class="place-form-help">Explique o que aconteceu, quando aconteceu e o que outras pessoas devem observar.</span>
+                    <%= f.text_area :description, rows: 6, class: "place-form-control place-form-control--textarea", placeholder: "Ex.: Fui ao local ontem à noite, a entrada estava vazia, houve confusão na saída e faltava presença de segurança..." %>
+                  </div>
                 </div>
 
-                <div class="place-form-group">
-                  <%= f.label :description, (portuguese ? "Descrição" : "Description") %>
-                  <%= f.text_area :description, class: "place-form-control place-form-control--textarea", rows: 5, placeholder: (portuguese ? "Descreva o que você percebeu neste local." : "Describe what you noticed about this place.") %>
+                <div class="place-form-footer">
+                  <p class="place-form-note">
+                    Seu relato ajuda a construir um mapa mais útil, visual e confiável para toda a comunidade.
+                  </p>
+                  <%= f.submit "Publicar relato", class: "place-submit-button" %>
                 </div>
-
-                <%= f.submit(portuguese ? "Enviar relato" : "Submit report", class: "place-submit-button") %>
               <% end %>
             <% else %>
               <div class="place-signin-card">
-                <p><%= portuguese ? "Entre para compartilhar um relato e ajudar a comunidade com contexto recente." : "Sign in to share a report and help the community with recent context." %></p>
-                <%= link_to(portuguese ? "Entrar" : "Sign in", new_user_session_path, class: "place-submit-button") %>
+                <p>Faça login para compartilhar um relato e contribuir com o mapa da comunidade.</p>
+                <%= link_to "Entrar para contribuir", new_user_session_path, class: "place-submit-button" %>
               </div>
             <% end %>
-          </section>
+          </div>
         </aside>
       </div>
     </div>
