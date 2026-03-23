@@ -164,7 +164,7 @@
           </button>
 
           <div hidden>
-            <% @places.each do |place| %>
+            <% @map_places.each do |place| %>
               <div data-map-target="popup" data-place-id="<%= place.id %>">
                 <%= render "places/popup", place: place %>
               </div>
