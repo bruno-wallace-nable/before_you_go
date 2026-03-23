@@ -8,7 +8,7 @@ class ReportsController < ApplicationController
     @report.user = current_user
 
     if @report.save
-      redirect_to place_path(@place), notice: "Report created."
+      redirect_to places_path, notice: "Report created."
     else
       @reports = @place.reports
       render "places/show", status: :unprocessable_entity
