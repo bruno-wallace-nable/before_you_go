@@ -72,8 +72,13 @@
 
               <!-- 🔴 VERSO -->
               <div class="flip-card-back">
-                <div class="hero-badge">
-                  <span>Minhas Reviews</span>
+                <div class="flip-card-front-header">
+                  <div class="hero-badge">
+                    <span>Minhas Reviews</span>
+                  </div>
+                  <button class="btn-minhas-reviews" data-action="click->flip#toggle">
+                    Voltar
+                  </button>
                 </div>
 
                 <% if user_signed_in? %>
@@ -83,19 +88,20 @@
                     <div class="user-reports-list">
                       <% user_reports.each do |report| %>
                         <div class="user-report-item">
-                          <strong><%= report.place.name %></strong>
-                          <p><%= report.description.truncate(80) %></p>
-                          <span><%= report.status %></span>
+                          <div class="user-report-header">
+                            <strong class="user-report-place"><%= report.place.name %></strong>
+                            <span class="user-report-status user-report-status--<%= report.status %>">
+                              <%= report.status == "positive" ? "Positivo" : "Negativo" %>
+                            </span>
+                          </div>
+                          <p class="user-report-description"><%= report.description.truncate(80) %></p>
+                          <%= link_to "Ver local →", place_path(report.place), class: "user-report-link" %>
                         </div>
                       <% end %>
                     </div>
                   <% else %>
                     <p>Você ainda não tem relatos.</p>
                   <% end %>
-
-                  <button class="hero-primary-cta" data-action="click->flip#toggle">
-                    Voltar
-                  </button>
                 <% else %>
                   <p>Faça login para ver suas reviews</p>
                 <% end %>
