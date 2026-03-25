@@ -1,16 +1,40 @@
 class Place < ApplicationRecord
   has_many :reports
   has_many :favorites, dependent: :destroy # se o lugar for deletado, remove dos favoritos
+
   geocoded_by :address
   after_validation :geocode, if: :address_changed?
 
+  def positive_reports_count
+    reports.where(status: "positive").count
+  end
+
+  def negative_reports_count
+    reports.where(status: "negative").count
+  end
+
+  def reports_count
+    positive_reports_count + negative_reports_count
+  end
+
+  def positive_ratio
+    return 0 if reports_count.zero?
+
+    positive_reports_count.to_f / reports_count
+  end
+
   def status
-    return "neutral" if reports.empty?
+    return "neutral" if reports_count.zero?
 
-    positive = reports.where(status: "positive").count
-    negative = reports.where(status: "negative").count
+    ratio = positive_ratio
 
-    positive >= negative ? "positive" : "negative"
+    if ratio >= 0.6
+      "positive"
+    elsif ratio <= 0.4
+      "negative"
+    else
+      "neutral"
+    end
   end
 
   def status_label
@@ -22,9 +46,22 @@ class Place < ApplicationRecord
   end
 
   def pin_color
-    case status
-    when "positive" then "green"
-    when "negative" then "red"
+    return "gray" if reports_count.zero?
+
+    ratio = positive_ratio
+
+    if ratio >= 0.85
+      "green-strong"
+    elsif ratio >= 0.7
+      "green-medium"
+    elsif ratio >= 0.6
+      "green-light"
+    elsif ratio <= 0.15
+      "red-strong"
+    elsif ratio <= 0.3
+      "red-medium"
+    elsif ratio <= 0.4
+      "red-light"
     else
       "gray"
     end

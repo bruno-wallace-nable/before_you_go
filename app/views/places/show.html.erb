@@ -110,6 +110,57 @@
                         portuguese ? "Ainda não há consenso suficiente nos relatos." : "There is not enough consensus in the reports yet."
                       end %>
                 </p>
+
+                <div class="place-status-legend">
+                  <% if @place.status == "positive" %>
+                    <div class="place-status-legend-item">
+                      <span class="place-status-legend-pin place-status-legend-pin--green"></span>
+                      <span><%= portuguese ? "Local seguro" : "Safe place" %></span>
+                    </div>
+
+                    <div class="place-status-legend-item">
+                      <span class="place-status-legend-pin place-status-legend-pin--yellow"></span>
+                      <span><%= portuguese ? "Sua localização" : "Your location" %></span>
+                    </div>
+
+                    <div class="place-status-legend-item">
+                      <span class="place-status-legend-pin place-status-legend-pin--red"></span>
+                      <span><%= portuguese ? "Perigoso" : "Dangerous" %></span>
+                    </div>
+
+                  <% elsif @place.status == "negative" %>
+                    <div class="place-status-legend-item">
+                      <span class="place-status-legend-pin place-status-legend-pin--red"></span>
+                      <span><%= portuguese ? "Perigoso" : "Dangerous" %></span>
+                    </div>
+
+                    <div class="place-status-legend-item">
+                      <span class="place-status-legend-pin place-status-legend-pin--yellow"></span>
+                      <span><%= portuguese ? "Sua localização" : "Your location" %></span>
+                    </div>
+
+                    <div class="place-status-legend-item">
+                      <span class="place-status-legend-pin place-status-legend-pin--green"></span>
+                      <span><%= portuguese ? "Local seguro" : "Safe place" %></span>
+                    </div>
+
+                  <% else %>
+                    <div class="place-status-legend-item">
+                      <span class="place-status-legend-pin place-status-legend-pin--green"></span>
+                      <span><%= portuguese ? "Local seguro" : "Safe place" %></span>
+                    </div>
+
+                    <div class="place-status-legend-item">
+                      <span class="place-status-legend-pin place-status-legend-pin--yellow"></span>
+                      <span><%= portuguese ? "Sua localização" : "Your location" %></span>
+                    </div>
+
+                    <div class="place-status-legend-item">
+                      <span class="place-status-legend-pin place-status-legend-pin--red"></span>
+                      <span><%= portuguese ? "Perigoso" : "Dangerous" %></span>
+                    </div>
+                  <% end %>
+                </div>
               </div>
 
               <div class="place-signal-card">
@@ -138,10 +189,13 @@
               <div class="place-reports-list">
                 <% @reports.order(created_at: :desc).each do |report| %>
                   <% report_status_label =
-                       if report.status == "positive"
+                       case report.status
+                       when "positive"
                          portuguese ? "Positivo" : "Positive"
-                       else
+                       when "negative"
                          portuguese ? "Negativo" : "Negative"
+                       else
+                         portuguese ? "Indefinido" : "Undefined"
                        end %>
                   <% report_time_label = portuguese ? report.created_at.strftime("%d/%m/%Y • %H:%M") : report.created_at.strftime("%b %d, %Y • %H:%M") %>
 
@@ -177,59 +231,89 @@
         <aside class="place-detail-sidebar">
           <div class="place-action-card place-action-card--simple">
             <span class="place-section-eyebrow"><%= portuguese ? "Contribuir" : "Contribute" %></span>
-            <h2><%= portuguese ? "Adicionar um relato" : "Add a report" %></h2>
-            <p>
-              <%= if portuguese
-                    "Compartilhe um contexto recente para manter a leitura deste lugar mais útil para outras pessoas."
-                  else
-                    "Share recent context to keep this place reading more useful for other people."
-                  end %>
-            </p>
 
             <% if user_signed_in? %>
-              <%= form_with model: [@place, @report], local: true, class: "place-report-form-simple" do |f| %>
-                <% if @report.errors.any? %>
-                  <div class="place-form-errors">
-                    <p><strong><%= portuguese ? "Não foi possível enviar seu relato." : "We couldn't submit your report." %></strong></p>
-                    <p><%= @report.errors.full_messages.to_sentence %></p>
+              <% if @user_report.present? %>
+                <h2><%= portuguese ? "Seu relato já foi enviado" : "Your report has already been submitted" %></h2>
+                <p class="place-user-report-intro">
+                  <%= if portuguese
+                        "Você já deixou uma avaliação para este local. Para manter a leitura justa da comunidade, permitimos apenas um relato por pessoa em cada lugar."
+                      else
+                        "You have already submitted a report for this place. To keep the community reading fair, we allow only one report per person in each place."
+                      end %>
+                </p>
+
+                <div class="place-user-report-locked">
+                  <div class="place-user-report-summary">
+                    <div class="place-user-report-row">
+                      <span class="place-user-report-key"><%= portuguese ? "Categoria" : "Category" %></span>
+                      <p class="place-user-report-value"><%= @user_report.category.presence || "—" %></p>
+                    </div>
+
+                    <div class="place-user-report-row">
+                      <span class="place-user-report-key"><%= portuguese ? "Tipo do relato" : "Report type" %></span>
+                      <p class="place-user-report-value place-user-report-value--status">
+                        <%= case @user_report.status
+                            when "positive"
+                              portuguese ? "Positivo" : "Positive"
+                            when "negative"
+                              portuguese ? "Negativo" : "Negative"
+                            else
+                              portuguese ? "Indefinido" : "Undefined"
+                            end %>
+                      </p>
+                    </div>
+
+                    <div class="place-user-report-row place-user-report-row--description">
+                      <span class="place-user-report-key"><%= portuguese ? "Descrição" : "Description" %></span>
+                      <p class="place-user-report-description"><%= @user_report.description.presence || "—" %></p>
+                    </div>
+                  </div>
+                </div>
+              <% else %>
+                <h2><%= portuguese ? "Adicionar um relato" : "Add a report" %></h2>
+                <p>
+                  <%= if portuguese
+                        "Compartilhe um contexto recente para manter a leitura deste lugar mais útil para outras pessoas."
+                      else
+                        "Share recent context to keep the reading of this place more useful for other people."
+                      end %>
+                </p>
+
+                <%= form_with model: [@place, @report], local: true, class: "place-report-form-simple" do |f| %>
+                  <% if @report.errors.any? %>
+                    <div class="place-form-errors">
+                      <p><strong><%= portuguese ? "Não foi possível enviar seu relato." : "We couldn't submit your report." %></strong></p>
+                      <p><%= @report.errors.full_messages.to_sentence %></p>
+                    </div>
+                  <% end %>
+
+                  <div class="place-form-group">
+                    <%= f.label :category, portuguese ? "Categoria" : "Category" %>
+                    <%= f.select :category, category_options, {}, class: "place-form-control" %>
                   </div>
 
                   <div class="place-form-group">
-                    <%= f.label :status, (portuguese ? "Tipo do relato" : "Report type") %>
+                    <%= f.label :status, portuguese ? "Tipo do relato" : "Report type" %>
                     <%= f.select :status, status_options, {}, class: "place-form-control" %>
                   </div>
 
                   <div class="place-form-group">
-                    <%= f.label :description, (portuguese ? "Descrição" : "Description") %>
-                    <%= f.text_area :description, class: "place-form-control place-form-control--textarea", rows: 5, placeholder: (portuguese ? "Descreva o que você percebeu neste local." : "Describe what you noticed about this place.") %>
+                    <%= f.label :description, portuguese ? "Descrição" : "Description" %>
+                    <%= f.text_area :description,
+                          rows: 6,
+                          class: "place-form-control place-form-control--textarea",
+                          placeholder: (portuguese ? "Descreva o que você percebeu neste local." : "Describe what you noticed in this place.") %>
                   </div>
 
-                  <%= f.submit(portuguese ? "Enviar relato" : "Submit report", class: "place-submit-button") %>
+                  <%= f.submit (portuguese ? "Enviar relato" : "Send report"), class: "place-submit-button" %>
                 <% end %>
-
-                <div class="place-form-group">
-                  <%= f.label :category, portuguese ? "Categoria" : "Category" %>
-                  <%= f.select :category, category_options, {}, class: "place-form-control" %>
-                </div>
-
-                <div class="place-form-group">
-                  <%= f.label :status, portuguese ? "Tipo do relato" : "Report type" %>
-                  <%= f.select :status, status_options, {}, class: "place-form-control" %>
-                </div>
-
-                <div class="place-form-group">
-                  <%= f.label :description, portuguese ? "Descrição" : "Description" %>
-                  <%= f.text_area :description,
-                        rows: 6,
-                        class: "place-form-control place-form-control--textarea",
-                        placeholder: (portuguese ? "Descreva o que você percebeu neste local." : "Describe what you noticed in this place.") %>
-                </div>
-
-                <%= f.submit (portuguese ? "Enviar relato" : "Send report"), class: "place-submit-button" %>
               <% end %>
             <% else %>
+              <h2><%= portuguese ? "Adicionar um relato" : "Add a report" %></h2>
+              <p><%= portuguese ? "Faça login para compartilhar um relato e contribuir com o mapa da comunidade." : "Sign in to share a report and contribute to the community map." %></p>
+
               <div class="place-signin-card">
-                <p><%= portuguese ? "Faça login para compartilhar um relato e contribuir com o mapa da comunidade." : "Sign in to share a report and contribute to the community map." %></p>
                 <%= link_to (portuguese ? "Entrar para contribuir" : "Sign in to contribute"), new_user_session_path, class: "place-submit-button" %>
               </div>
             <% end %>
