@@ -2,13 +2,15 @@ class PlacesController < ApplicationController
   def index
     query = params[:query].to_s.strip
 
+    with_reports = Place.includes(:reports)
+
     if query.present?
       sql_query = "%#{query}%"
-      @places = Place.where("name ILIKE :query OR address ILIKE :query", query: sql_query)
-      @map_places = @places
+      @places = with_reports.where("name ILIKE :query OR address ILIKE :query", query: sql_query)
+      @map_places = Place.where.not(latitude: nil, longitude: nil).includes(:reports)
     else
-      @places = Place.order(created_at: :desc).limit(4) # UI
-      @map_places = Place.all # MAPA
+      @places = with_reports.order(created_at: :desc).limit(4) # UI
+      @map_places = with_reports # MAPA
     end
 
     @markers = @map_places.select { |place| place.latitude.present? && place.longitude.present? }.map do |place|
