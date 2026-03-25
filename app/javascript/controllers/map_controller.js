@@ -4,69 +4,69 @@ export default class extends Controller {
   static targets = ["popup"]
 
   connect() {
-    // Configura o token de acesso do Mapbox
     mapboxgl.accessToken = this.element.dataset.mapboxKey
 
-    // Lê os markers do atributo data-markers (JSON)
-    const markers = JSON.parse(this.element.dataset.markers)
+    const markers = JSON.parse(this.element.dataset.markers || "[]")
 
-    // Inicializa o mapa centrado no primeiro lugar ou em São Paulo como fallback
     this.map = new mapboxgl.Map({
       container: this.element.querySelector("#map"),
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: "mapbox://styles/mapbox/streets-v12",
       center: markers.length > 0 ? [markers[0].lng, markers[0].lat] : [-46.63, -23.55],
       zoom: 10
     })
 
-    // Cria os pins no mapa para cada lugar do banco
-    this.markers = markers.map(marker => {
-      // Encontra o popup correspondente ao lugar pelo ID
-      const popupEl = this.popupTargets.find(el => el.dataset.placeId == marker.id)
+    this.markers = markers.map((marker) => {
+      const popupEl = this.popupTargets.find((el) => el.dataset.placeId == marker.id)
+      const markerColor = this.resolveMarkerColor(marker.pin_color)
 
-      // Cria o pin colorido com popup e adiciona ao mapa
-      const mapMarker = new mapboxgl.Marker({ color: marker.pin_color })
+      const mapMarker = new mapboxgl.Marker({ color: markerColor })
         .setLngLat([marker.lng, marker.lat])
         .setPopup(popupEl ? new mapboxgl.Popup().setHTML(popupEl.innerHTML) : null)
         .addTo(this.map)
 
-      // Retorna referência do marker e ID do lugar para uso posterior
       return { placeId: marker.id, marker: mapMarker }
     })
 
-    // Centraliza no lugar buscado via home (lat/lng na URL) ou ao voltar de um lugar
     const params = new URLSearchParams(window.location.search)
     const lat = parseFloat(params.get("lat"))
     const lng = parseFloat(params.get("lng"))
-    const focusPlaceId = params.get("place_id")
+
     if (!isNaN(lat) && !isNaN(lng)) {
       this.map.once("load", () => {
         this.map.flyTo({ center: [lng, lat], zoom: 15, speed: 1.5 })
-        if (focusPlaceId) {
-          this.map.once("moveend", () => {
-            const target = this.markers.find(m => String(m.placeId) === String(focusPlaceId))
-            if (target) target.marker.getPopup().addTo(this.map)
-          })
-        } else {
-          new mapboxgl.Marker({ color: "#3b82f6" }).setLngLat([lng, lat]).addTo(this.map)
-        }
+
+        this.tempMarker = new mapboxgl.Marker({ color: "#3b82f6" })
+          .setLngLat([lng, lat])
+          .addTo(this.map)
       })
     }
 
-    // Registra clique no mapa para reverse geocoding
     this.map.on("click", (e) => this.clickMap(e))
 
-    // Muda cursor para pointer ao passar em cima de um POI
     this.map.on("mouseenter", "poi-label", () => {
       this.map.getCanvas().style.cursor = "pointer"
     })
 
-    // Volta cursor padrão ao sair do POI
     this.map.on("mouseleave", "poi-label", () => {
       this.map.getCanvas().style.cursor = ""
     })
   }
 
-  // Voa até o lugar quando o usuário clica num card da lista
+  resolveMarkerColor(pinColor) {
+    const colorMap = {
+      "green-light": "#86efac",
+      "green-medium": "#22c55e",
+      "green-strong": "#15803d",
+      "red-light": "#fca5a5",
+      "red-medium": "#ef4444",
+      "red-strong": "#b91c1c",
+      "gray": "#9ca3af",
+      "yellow-user": "#f59e0b"
+    }
+
+    return colorMap[pinColor] || "#9ca3af"
+  }
+
   flyTo(event) {
     const lat = parseFloat(event.currentTarget.dataset.lat)
     const lng = parseFloat(event.currentTarget.dataset.lng)
@@ -78,21 +78,19 @@ export default class extends Controller {
       speed: 1.5
     })
 
-    // Abre o popup do lugar após a animação terminar
     this.map.once("moveend", () => {
-      const markerPopup = this.markers.find(m => m.placeId == placeId)
-      if (markerPopup) markerPopup.marker.getPopup().addTo(this.map)
+      const markerPopup = this.markers.find((m) => m.placeId == placeId)
+      if (markerPopup && markerPopup.marker.getPopup()) {
+        markerPopup.marker.getPopup().addTo(this.map)
+      }
     })
   }
 
-  // Voa até o lugar buscado via Mapbox Search e adiciona pin temporário azul
   zoomToPlace(event) {
     const { lat, lng } = event.detail
 
-    // Remove pin temporário anterior se existir
     if (this.tempMarker) this.tempMarker.remove()
 
-    // Cria pin azul temporário para indicar o local buscado
     this.tempMarker = new mapboxgl.Marker({ color: "#3b82f6" })
       .setLngLat([lng, lat])
       .addTo(this.map)
@@ -104,21 +102,19 @@ export default class extends Controller {
     })
   }
 
-  // Centraliza o mapa na localização atual do usuário
   geolocate() {
-    // Verifica se o browser suporta geolocalização
     if (!navigator.geolocation) return
 
     navigator.geolocation.getCurrentPosition(
-      position => {
+      (position) => {
         const lat = position.coords.latitude
         const lng = position.coords.longitude
 
-        // Remove pin de localização anterior se existir
         if (this.userMarker) this.userMarker.remove()
 
-        // Cria pin roxo para indicar a posição do usuário
-        this.userMarker = new mapboxgl.Marker({ color: "#8b5cf6" })
+        this.userMarker = new mapboxgl.Marker({
+          color: this.resolveMarkerColor("yellow-user")
+        })
           .setLngLat([lng, lat])
           .addTo(this.map)
 
@@ -128,14 +124,13 @@ export default class extends Controller {
           speed: 1.5
         })
       },
-      error => {
+      (error) => {
         console.error("Geolocation error:", error.code, error.message)
       },
       { timeout: 10000 }
     )
   }
 
-  // Escapa caracteres HTML para evitar XSS em conteúdo inserido no popup
   escape(str) {
     return String(str)
       .replace(/&/g, "&amp;")
@@ -144,7 +139,6 @@ export default class extends Controller {
       .replace(/"/g, "&quot;")
   }
 
-  // Busca informações do local clicado e exibe popup com botão de adicionar
   clickMap(event) {
     const features = this.map.queryRenderedFeatures(event.point, {
       layers: ["poi-label"]
@@ -154,59 +148,57 @@ export default class extends Controller {
 
     const feature = features[0]
     const name = feature.properties.name || "Local sem nome"
-    const category = feature.properties.category_en || ""
     const lng = event.lngLat.lng
     const lat = event.lngLat.lat
 
-    // Busca endereço via reverse geocoding
     fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=pt&types=address`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         const address = data.features[0]?.place_name || ""
 
         new mapboxgl.Popup({
-  closeButton: true,
-  closeOnClick: true,
-  maxWidth: "420px"
-})
-  .setLngLat(event.lngLat)
-  .setHTML(`
-    <div class="map-popup-card">
-      <div class="map-popup-status map-popup-status--neutral"></div>
+          closeButton: true,
+          closeOnClick: true,
+          maxWidth: "420px"
+        })
+          .setLngLat(event.lngLat)
+          .setHTML(`
+            <div class="map-popup-card">
+              <div class="map-popup-status map-popup-status--neutral"></div>
 
-      <div class="map-popup-body">
-        <div class="map-popup-header">
-          <span class="map-popup-badge">Atenção</span>
-          <h3 class="map-popup-title">${this.escape(name)}</h3>
-        </div>
+              <div class="map-popup-body">
+                <div class="map-popup-header">
+                  <span class="map-popup-badge">Atenção</span>
+                  <h3 class="map-popup-title">${this.escape(name)}</h3>
+                </div>
 
-        <p class="map-popup-text">
-          Ainda não há relatos para este local.
-        </p>
+                <p class="map-popup-text">
+                  Ainda não há relatos para este local.
+                </p>
 
-        <div class="map-popup-footer">
-          <button
-            type="button"
-            class="map-popup-button"
-            data-action="click->map#addPlace"
-            data-name="${this.escape(name)}"
-            data-address="${this.escape(address)}"
-            data-lat="${lat}"
-            data-lng="${lng}">
-            Adicionar primeira review
-          </button>
-        </div>
-      </div>
-    </div>
-  `)
-  .addTo(this.map)
+                <div class="map-popup-footer">
+                  <button
+                    type="button"
+                    class="map-popup-button"
+                    data-action="click->map#addPlace"
+                    data-name="${this.escape(name)}"
+                    data-address="${this.escape(address)}"
+                    data-lat="${lat}"
+                    data-lng="${lng}">
+                    Adicionar primeira review
+                  </button>
+                </div>
+              </div>
+            </div>
+          `)
+          .addTo(this.map)
       })
-      .catch(err => console.error("Erro no reverse geocoding:", err))
+      .catch((err) => console.error("Erro no reverse geocoding:", err))
   }
 
-  // Cria o place no banco e redireciona para a página do lugar
   addPlace(event) {
     event.preventDefault()
+
     const { name, address, lat, lng } = event.currentTarget.dataset
     const locale = document.documentElement.lang || "pt-BR"
 
@@ -218,10 +210,12 @@ export default class extends Controller {
       },
       body: JSON.stringify({ name, address, latitude: lat, longitude: lng })
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) window.location.href = `/${locale}/places/${data.place_id}`
-    })
-    .catch(err => console.error("Erro ao adicionar local:", err))
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          window.location.href = `/${locale}/places/${data.place_id}`
+        }
+      })
+      .catch((err) => console.error("Erro ao adicionar local:", err))
   }
 }

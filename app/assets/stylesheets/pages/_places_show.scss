@@ -39,11 +39,29 @@
 }
 
 .place-detail-hero--positive {
-  border-color: rgba(79, 186, 126, 0.32);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+
+  background:
+    radial-gradient(circle at top right, rgba(34, 197, 94, 0.18), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.12), transparent 30%),
+    linear-gradient(180deg, #f3fff7 0%, #ecfdf5 100%);
+
+  box-shadow:
+    0 28px 60px rgba(36, 68, 145, 0.08),
+    0 0 0 2px rgba(34, 197, 94, 0.15);
 }
 
 .place-detail-hero--negative {
-  border-color: rgba(224, 102, 102, 0.32);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+
+  background:
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.18), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(239, 68, 68, 0.12), transparent 30%),
+    linear-gradient(180deg, #fff5f5 0%, #fef2f2 100%);
+
+  box-shadow:
+    0 28px 60px rgba(36, 68, 145, 0.08),
+    0 0 0 2px rgba(239, 68, 68, 0.15);
 }
 
 .place-detail-hero--neutral {
@@ -265,14 +283,6 @@
   background: #ffffff;
   border: 1px solid rgba(199, 212, 239, 0.78);
   box-shadow: 0 12px 26px rgba(37, 67, 145, 0.05);
-}
-
-.report-card--positive {
-  border-left: 5px solid #2e9e5b;
-}
-
-.report-card--negative {
-  border-left: 5px solid #d64545;
 }
 
 .report-card-top {
@@ -717,4 +727,158 @@
 
 .place-status-option--negative:has(input:checked) {
   background: rgba(198, 40, 40, 0.12);
+}
+
+/* =========================
+   STATUS LEGEND (PINS)
+========================= */
+
+.place-status-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.place-status-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* PIN BASE */
+.place-status-legend-pin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* CORES */
+
+.place-status-legend-pin--green {
+  background: #22c55e;
+}
+
+.place-status-legend-pin--yellow {
+  background: #f59e0b;
+}
+
+.place-status-legend-pin--red {
+  background: #ef4444;
+}
+
+/* =========================
+   PAGE STATUS REINFORCEMENT
+========================= */
+
+/* HERO mais evidente quando seguro */
+.place-detail-hero--positive {
+  border: 1px solid rgba(34, 197, 94, 0.34);
+  box-shadow:
+    0 28px 60px rgba(36, 68, 145, 0.08),
+    0 0 0 2px rgba(34, 197, 94, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+/* HERO mais evidente quando perigoso */
+.place-detail-hero--negative {
+  border: 1px solid rgba(239, 68, 68, 0.34);
+  box-shadow:
+    0 28px 60px rgba(36, 68, 145, 0.08),
+    0 0 0 2px rgba(239, 68, 68, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+/* Card principal de leitura ganha borda mais forte */
+.place-signal-card--positive {
+  border: 1px solid rgba(34, 197, 94, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 0 0 1px rgba(34, 197, 94, 0.08);
+}
+
+.place-signal-card--negative {
+  border: 1px solid rgba(239, 68, 68, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 0 0 1px rgba(239, 68, 68, 0.08);
+}
+
+/* Histórico recente também reforça o status */
+.report-card--positive {
+  border: 1px solid rgba(34, 197, 94, 0.20);
+  border-left: 5px solid #22c55e;
+}
+
+.report-card--negative {
+  border: 1px solid rgba(239, 68, 68, 0.20);
+  border-left: 5px solid #ef4444;
+}
+
+.place-user-report-intro {
+  margin: 0 0 22px;
+  color: #6c7a96;
+  line-height: 1.75;
+  font-size: 1.02rem;
+}
+
+.place-user-report-locked {
+  margin-top: 8px;
+}
+
+.place-user-report-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 0 0;
+  border-top: 1px solid #e4eaf8;
+}
+
+.place-user-report-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.place-user-report-key {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7aa6;
+}
+
+.place-user-report-value {
+  margin: 0;
+  font-size: 1.12rem;
+  line-height: 1.45;
+  font-weight: 700;
+  color: #182b57;
+}
+
+.place-user-report-value--status {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #eef3ff;
+}
+
+.place-user-report-description {
+  margin: 0;
+  color: #5f6f8f;
+  line-height: 1.8;
+  font-size: 1.02rem;
+  white-space: pre-line;
+}
+
+.place-user-report-row--description {
+  padding-top: 4px;
 }

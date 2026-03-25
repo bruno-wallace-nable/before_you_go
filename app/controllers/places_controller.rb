@@ -26,8 +26,16 @@ class PlacesController < ApplicationController
 
   def show
     @place = Place.find(params[:id])
-    @reports = @place.reports.order(created_at: :desc)
-    @report = @place.reports.build
+
+    @reports = @place.reports.includes(:user).order(created_at: :desc)
+
+    if user_signed_in?
+      @user_report = @place.reports.find_by(user: current_user)
+      @report = @user_report || @place.reports.build
+    else
+      @user_report = nil
+      @report = @place.reports.build
+    end
   end
 
   def create
