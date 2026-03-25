@@ -166,7 +166,7 @@
                     </div>
 
                     <p class="report-description"><%= report.description %></p>
-                    <p class="report-author"><%= report.user.email %></p>
+                    <p class="report-author"><%= report.user.first_name.presence || report.user.email.split("@").first %></p>
                   </article>
                 <% end %>
               </div>
