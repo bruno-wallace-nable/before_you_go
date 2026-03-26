@@ -270,49 +270,16 @@ export default class extends Controller {
   }
 
   resolveDemoMarkers(viewport, width, height) {
-    const fallbackMarkers = this.staticDemoMarkers(viewport, width, height)
+    const markers = this.staticDemoMarkers(viewport, width, height)
+    this.demoMarkers = markers
 
-    if (!this.userLocation) {
-      this.demoMarkers = fallbackMarkers
-
-      if (this.map) {
-        this.syncInteractiveDemoMarkers()
-        return
-      }
-
-      const center = `${viewport.lng},${viewport.lat},${viewport.zoom},0`
-      this.loadStaticMap(this.staticMapUrl(center, width, height, true), viewport)
-      return
-    }
-
-    const cacheKey = this.demoMarkerCacheKey(viewport, width, height)
-    const cachedMarkers = this.demoMarkerCache.get(cacheKey)
-
-    if (cachedMarkers) {
-      this.demoMarkers = cachedMarkers
+    if (this.map) {
       this.syncInteractiveDemoMarkers()
       return
     }
 
-    const requestId = ++this.markerRequestId
-    const candidateCoordinates = this.visibleDemoMarkers(viewport, width, height)
-
-    this.findResolvedDemoMarkers(candidateCoordinates).then((resolvedMarkers) => {
-      if (requestId !== this.markerRequestId) return
-
-      const markers = resolvedMarkers.length === 3 ? resolvedMarkers : fallbackMarkers
-
-      this.demoMarkerCache.set(cacheKey, markers)
-      this.demoMarkers = markers
-
-      if (this.map) {
-        this.syncInteractiveDemoMarkers()
-        return
-      }
-
-      const center = `${viewport.lng},${viewport.lat},${viewport.zoom},0`
-      this.loadStaticMap(this.staticMapUrl(center, width, height, true), viewport)
-    })
+    const center = `${viewport.lng},${viewport.lat},${viewport.zoom},0`
+    this.loadStaticMap(this.staticMapUrl(center, width, height, true), viewport)
   }
 
   demoMarkerCacheKey(viewport, width, height) {
@@ -330,7 +297,10 @@ export default class extends Controller {
 
     for (const marker of markers) {
       const resolvedMarker = await this.resolveValidMarkerLocation(marker.lng, marker.lat)
-      if (resolvedMarker) validatedMarkers.push(resolvedMarker)
+      if (resolvedMarker) {
+        validatedMarkers.push(resolvedMarker)
+        if (validatedMarkers.length >= 3) break
+      }
     }
 
     return validatedMarkers
@@ -346,6 +316,8 @@ export default class extends Controller {
   }
 
   async resolveValidMarkerLocation(lng, lat) {
+    if (lng < -180 || lng > 180 || lat < -85.05112878 || lat > 85.05112878) return null
+
     try {
       const params = new URLSearchParams({
         access_token: this.mapboxToken,
