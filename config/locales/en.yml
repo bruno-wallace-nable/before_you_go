@@ -1,4 +1,10 @@
 en:
+  footer:
+    rights: "© 2026 Before You Go. All rights reserved."
+    developed_by: "Developed by"
+    and_connector: "and"
+    disclaimer_label: "Disclaimer:"
+    disclaimer_text: "This is a community-driven safety platform. The reviews and reports shared on this site are the sole responsibility of their respective authors."
   hello: "Hello world"
 
   auth:

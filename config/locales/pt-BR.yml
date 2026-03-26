@@ -1,4 +1,10 @@
 pt-BR:
+  footer:
+    rights: "© 2026 Before You Go. Todos os direitos reservados."
+    developed_by: "Desenvolvido por"
+    and_connector: "e"
+    disclaimer_label: "Aviso:"
+    disclaimer_text: "Esta é uma plataforma de segurança movida pela comunidade. As reviews e relatos compartilhados neste site são de inteira responsabilidade de seus respectivos autores."
   nav:
     home: "Início"
   auth:

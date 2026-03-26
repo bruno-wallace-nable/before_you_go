@@ -122,8 +122,7 @@ export default class extends Controller {
       this.syncInteractiveDemoMarkers()
       return
     }
-
-    this.loadStaticMap(this.staticMapUrl(center, width, height, false), viewport)
+    return
   }
 
   userViewport(focused) {
@@ -187,6 +186,19 @@ export default class extends Controller {
     return this.screenAnchorCandidates(width, height).map(({ x, y }) =>
       this.coordinateFromScreenPoint(viewport, width, height, x, y)
     )
+  }
+
+  staticDemoMarkers(viewport, width, height) {
+    const anchors = [
+      { x: 0.54, y: 0.14, color: "#57c885" },
+      { x: 0.67, y: 0.21, color: "#0d6a41" },
+      { x: 0.60, y: 0.34, color: "#d12f39" }
+    ]
+
+    return anchors.map(({ x, y, color }) => ({
+      ...this.coordinateFromScreenPoint(viewport, width, height, x, y),
+      color
+    }))
   }
 
   screenAnchorCandidates(width, height) {
@@ -258,7 +270,20 @@ export default class extends Controller {
   }
 
   resolveDemoMarkers(viewport, width, height) {
-    if (!this.userLocation) return
+    const fallbackMarkers = this.staticDemoMarkers(viewport, width, height)
+
+    if (!this.userLocation) {
+      this.demoMarkers = fallbackMarkers
+
+      if (this.map) {
+        this.syncInteractiveDemoMarkers()
+        return
+      }
+
+      const center = `${viewport.lng},${viewport.lat},${viewport.zoom},0`
+      this.loadStaticMap(this.staticMapUrl(center, width, height, true), viewport)
+      return
+    }
 
     const cacheKey = this.demoMarkerCacheKey(viewport, width, height)
     const cachedMarkers = this.demoMarkerCache.get(cacheKey)
@@ -275,8 +300,10 @@ export default class extends Controller {
     this.findResolvedDemoMarkers(candidateCoordinates).then((resolvedMarkers) => {
       if (requestId !== this.markerRequestId) return
 
-      this.demoMarkerCache.set(cacheKey, resolvedMarkers)
-      this.demoMarkers = resolvedMarkers
+      const markers = resolvedMarkers.length === 3 ? resolvedMarkers : fallbackMarkers
+
+      this.demoMarkerCache.set(cacheKey, markers)
+      this.demoMarkers = markers
 
       if (this.map) {
         this.syncInteractiveDemoMarkers()
@@ -388,7 +415,7 @@ export default class extends Controller {
     this.demoMapMarkers.forEach((marker) => marker.remove())
     this.demoMapMarkers = []
 
-    if (!this.map || !this.userLocation || this.demoMarkers.length === 0) return
+    if (!this.map || this.demoMarkers.length === 0) return
 
     this.demoMapMarkers = this.demoMarkers.map(({ lng, lat, color }) =>
       new mapboxgl.Marker({ color })
