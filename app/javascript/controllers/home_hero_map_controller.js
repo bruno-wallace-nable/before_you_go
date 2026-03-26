@@ -6,27 +6,48 @@ export default class extends Controller {
   connect() {
     this.defaultCenter = { lng: -51.9253, lat: -14.235, zoom: 4 }
     this.focusCenter = { lng: -47.93, lat: -15.78, zoom: 5 }
+    this.demoMarkers = []
     this.typingTimer = null
     this.userLocation = null
+    this.map = null
+    this.demoMapMarkers = []
+    this.pendingImage = null
+    this.lastViewport = null
+    this.handleResize = this.handleResize.bind(this)
 
-    this.renderMap(this.defaultCenter)
     this.locateUser()
+    window.addEventListener("resize", this.handleResize)
   }
 
   disconnect() {
     clearTimeout(this.typingTimer)
+    clearTimeout(this.geoFallbackTimer)
+    window.removeEventListener("resize", this.handleResize)
+    this.pendingImage = null
+    this.destroyInteractiveMap()
   }
 
   locateUser() {
-    if (!navigator.geolocation) return
+    if (!navigator.geolocation) {
+      this.renderMap(this.defaultCenter)
+      return
+    }
+
+    this.geoFallbackTimer = setTimeout(() => {
+      if (!this.userLocation) this.renderMap(this.defaultCenter)
+    }, 2000)
 
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
+        clearTimeout(this.geoFallbackTimer)
         this.userLocation = { lng: coords.longitude, lat: coords.latitude }
         this.showUserPin()
         this.renderMap(this.userViewport(false))
       },
-      () => {},
+      () => {
+        clearTimeout(this.geoFallbackTimer)
+        if (!this.userLocation) this.renderMap(this.defaultCenter)
+      },
       {
         enableHighAccuracy: true,
         timeout: 10000,
@@ -90,8 +111,18 @@ export default class extends Controller {
       ? this.staticViewportForPin({ lng, lat, zoom }, width, height)
       : { lng, lat, zoom }
     const center = `${viewport.lng},${viewport.lat},${viewport.zoom},0`
+    this.lastViewport = viewport
+    this.demoMarkers = this.userLocation
+      ? this.visibleDemoMarkers(viewport, width, height)
+      : []
 
-    this.mapTarget.style.backgroundImage = `url("${this.staticMapUrl(center, width, height)}")`
+    if (this.map) {
+      this.map.easeTo({ center: [viewport.lng, viewport.lat], zoom: viewport.zoom, duration: 500 })
+      this.syncInteractiveDemoMarkers()
+      return
+    }
+
+    this.loadStaticMap(this.staticMapUrl(center, width, height, this.userLocation), viewport)
   }
 
   userViewport(focused) {
@@ -151,8 +182,118 @@ export default class extends Controller {
     this.userPinTarget.hidden = false
   }
 
-  staticMapUrl(center, width, height) {
-    return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${center}/${width}x${height}?access_token=${this.mapboxToken}`
+  visibleDemoMarkers(viewport, width, height) {
+    const anchors = [
+      { x: 0.60, y: 0.10, color: "#0d6a41" },
+      { x: 0.76, y: 0.22, color: "#57c885" },
+      { x: 0.58, y: 0.38, color: "#d12f39" }
+    ]
+
+    return anchors.map(({ x, y, color }) => ({
+      ...this.coordinateFromScreenPoint(viewport, width, height, x, y),
+      color
+    }))
+  }
+
+  coordinateFromScreenPoint(viewport, width, height, xRatio, yRatio) {
+    const scale = 512 * (2 ** viewport.zoom)
+    const screenCenter = {
+      x: width / 2,
+      y: height / 2
+    }
+    const targetPoint = {
+      x: width * xRatio,
+      y: height * yRatio
+    }
+    const projectedCenter = this.projectMercator(viewport.lng, viewport.lat, scale)
+    const projectedTarget = {
+      x: projectedCenter.x + (targetPoint.x - screenCenter.x),
+      y: projectedCenter.y + (targetPoint.y - screenCenter.y)
+    }
+
+    return this.unprojectMercator(projectedTarget.x, projectedTarget.y, scale)
+  }
+
+  syncInteractiveDemoMarkers() {
+    this.demoMapMarkers.forEach((marker) => marker.remove())
+    this.demoMapMarkers = []
+
+    if (!this.map || !this.userLocation || this.demoMarkers.length === 0) return
+
+    this.demoMapMarkers = this.demoMarkers.map(({ lng, lat, color }) =>
+      new mapboxgl.Marker({ color })
+        .setLngLat([lng, lat])
+        .addTo(this.map)
+    )
+  }
+
+  handleResize() {
+    if (this.map) {
+      this.map.resize()
+    }
+
+    if (this.lastViewport) {
+      this.renderMap(this.lastViewport)
+    }
+  }
+
+  loadStaticMap(url, viewport) {
+    const image = new Image()
+    this.pendingImage = image
+
+    image.onload = () => {
+      if (this.pendingImage !== image || this.map) return
+      this.mapTarget.style.backgroundImage = `url("${url}")`
+    }
+
+    image.onerror = () => {
+      if (this.pendingImage !== image) return
+      this.initializeInteractiveMap(viewport)
+    }
+
+    image.src = url
+  }
+
+  initializeInteractiveMap(viewport) {
+    if (this.map || typeof mapboxgl === "undefined") return
+
+    mapboxgl.accessToken = this.mapboxToken
+    this.mapTarget.style.backgroundImage = "none"
+    this.mapTarget.classList.add("hero-live-map--interactive")
+
+    this.map = new mapboxgl.Map({
+      container: this.mapTarget,
+      style: "mapbox://styles/mapbox/streets-v12",
+      center: [viewport.lng, viewport.lat],
+      zoom: viewport.zoom,
+      attributionControl: false
+    })
+
+    this.map.scrollZoom.disable()
+    this.map.dragRotate.disable()
+    this.map.touchZoomRotate.disableRotation()
+
+    this.syncInteractiveDemoMarkers()
+  }
+
+  destroyInteractiveMap() {
+    if (!this.map) return
+
+    this.demoMapMarkers.forEach((marker) => marker.remove())
+    this.demoMapMarkers = []
+    this.map.remove()
+    this.map = null
+    this.mapTarget.classList.remove("hero-live-map--interactive")
+  }
+
+  staticMapUrl(center, width, height, showDemoMarkers = false) {
+    const overlays = showDemoMarkers && this.demoMarkers.length > 0
+      ? `${this.demoMarkers
+          .map(({ lng, lat, color }) => `pin-s+${color.replace("#", "")}(${lng},${lat})`)
+          .join(",")}/`
+      : ""
+
+    return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${overlays}${center}/${width}x${height}?access_token=${this.mapboxToken}`
   }
 
   get mapboxToken() {

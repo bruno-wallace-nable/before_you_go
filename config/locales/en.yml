@@ -42,6 +42,11 @@ en:
       search_helper: "Start with a place, venue, or address to see what the community is reporting."
       primary_cta: "Explore places"
       secondary_cta: "How it works"
+      my_reviews_btn: "My Reviews"
+      back_btn: "Back"
+      reviews_empty: "You don't have any reports yet."
+      reviews_login: "Log in to see your reviews"
+      view_place: "View place →"
       stats:
         community:
           title: "Community insights"
@@ -59,10 +64,11 @@ en:
         overline: "Quick read"
         title: "Three clear statuses for faster decisions"
         text: "Before You Go turns recent community reports into a simpler signal, so you can quickly understand whether a place feels safe, uncertain, or risky."
-        metrics:
-          statuses: "easy-to-read statuses"
-          access: "access whenever you need it"
-          community: "community-based information"
+        legend:
+          safe: "Safe"
+          safer: "Safer than dangerous"
+          user_location: "Your location"
+          danger: "Danger avoid"
 
     trust:
       safety: "Safety-oriented information"
@@ -117,3 +123,8 @@ en:
         email: "Email"
         password: "Password"
         password_confirmation: "Confirm password"
+
+  reports:
+    status:
+      positive: "Positive"
+      negative: "Negative"
