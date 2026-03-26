@@ -7,12 +7,14 @@ export default class extends Controller {
     this.defaultCenter = { lng: -51.9253, lat: -14.235, zoom: 4 }
     this.focusCenter = { lng: -47.93, lat: -15.78, zoom: 5 }
     this.demoMarkers = []
+    this.demoMarkerCache = new Map()
     this.typingTimer = null
     this.userLocation = null
     this.map = null
     this.demoMapMarkers = []
     this.pendingImage = null
     this.lastViewport = null
+    this.markerRequestId = 0
     this.handleResize = this.handleResize.bind(this)
 
     this.renderMap(this.defaultCenter)
@@ -101,9 +103,8 @@ export default class extends Controller {
       : { lng, lat, zoom }
     const center = `${viewport.lng},${viewport.lat},${viewport.zoom},0`
     this.lastViewport = viewport
-    this.demoMarkers = this.userLocation
-      ? this.visibleDemoMarkers(viewport, width, height)
-      : []
+    this.demoMarkers = []
+    this.resolveDemoMarkers(viewport, width, height)
 
     if (this.map) {
       this.map.easeTo({ center: [viewport.lng, viewport.lat], zoom: viewport.zoom, duration: 500 })
@@ -111,7 +112,7 @@ export default class extends Controller {
       return
     }
 
-    this.loadStaticMap(this.staticMapUrl(center, width, height, this.userLocation), viewport)
+    this.loadStaticMap(this.staticMapUrl(center, width, height, false), viewport)
   }
 
   userViewport(focused) {
@@ -172,16 +173,185 @@ export default class extends Controller {
   }
 
   visibleDemoMarkers(viewport, width, height) {
-    const anchors = [
-      { x: 0.60, y: 0.10, color: "#0d6a41" },
-      { x: 0.76, y: 0.22, color: "#57c885" },
-      { x: 0.58, y: 0.38, color: "#d12f39" }
-    ]
+    return this.screenAnchorCandidates(width, height).map(({ x, y }) =>
+      this.coordinateFromScreenPoint(viewport, width, height, x, y)
+    )
+  }
 
-    return anchors.map(({ x, y, color }) => ({
-      ...this.coordinateFromScreenPoint(viewport, width, height, x, y),
-      color
-    }))
+  screenAnchorCandidates(width, height) {
+    const xCandidates = [0.50, 0.54, 0.58, 0.62, 0.66, 0.70]
+    const yCandidates = [0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52]
+    const blockedAreas = this.blockedScreenAreas()
+    const margin = { x: Math.max(36 / width, 0.02), y: Math.max(42 / height, 0.03) }
+    const candidates = []
+
+    yCandidates.forEach((y) => {
+      xCandidates.forEach((x) => {
+        if (this.pointInsideBlockedArea(x, y, blockedAreas, margin)) return
+        candidates.push({ x, y })
+      })
+    })
+
+    const sortedCandidates = candidates.sort((a, b) => this.anchorPriorityScore(a) - this.anchorPriorityScore(b))
+
+    return this.distributeScreenAnchors(sortedCandidates, width, height)
+  }
+
+  blockedScreenAreas() {
+    const mapRect = this.mapTarget.getBoundingClientRect()
+
+    return this.cardTargets
+      .map((card) => card.getBoundingClientRect())
+      .filter((rect) => rect.width > 0 && rect.height > 0)
+      .map((rect) => ({
+        left: (rect.left - mapRect.left) / mapRect.width,
+        right: (rect.right - mapRect.left) / mapRect.width,
+        top: (rect.top - mapRect.top) / mapRect.height,
+        bottom: (rect.bottom - mapRect.top) / mapRect.height
+      }))
+  }
+
+  pointInsideBlockedArea(x, y, blockedAreas, margin) {
+    return blockedAreas.some((area) =>
+      x >= area.left - margin.x &&
+      x <= area.right + margin.x &&
+      y >= area.top - margin.y &&
+      y <= area.bottom + margin.y
+    )
+  }
+
+  anchorPriorityScore({ x, y }) {
+    return Math.abs(x - 0.64) + (Math.abs(y - 0.24) * 1.2)
+  }
+
+  distributeScreenAnchors(candidates, width, height) {
+    const selected = []
+
+    candidates.forEach((candidate) => {
+      if (selected.length === 0) {
+        selected.push(candidate)
+        return
+      }
+
+      if (selected.some((anchor) => this.screenDistance(anchor, candidate, width, height) < 0.14)) return
+      selected.push(candidate)
+    })
+
+    return selected.length >= 12 ? selected : candidates
+  }
+
+  screenDistance(a, b, width, height) {
+    const deltaX = (a.x - b.x) * width
+    const deltaY = (a.y - b.y) * height
+    return Math.sqrt(deltaX ** 2 + deltaY ** 2) / Math.max(width, height)
+  }
+
+  resolveDemoMarkers(viewport, width, height) {
+    if (!this.userLocation) return
+
+    const cacheKey = this.demoMarkerCacheKey(viewport, width, height)
+    const cachedMarkers = this.demoMarkerCache.get(cacheKey)
+
+    if (cachedMarkers) {
+      this.demoMarkers = cachedMarkers
+      this.syncInteractiveDemoMarkers()
+      return
+    }
+
+    const requestId = ++this.markerRequestId
+    const candidateCoordinates = this.visibleDemoMarkers(viewport, width, height)
+
+    this.findResolvedDemoMarkers(candidateCoordinates).then((resolvedMarkers) => {
+      if (requestId !== this.markerRequestId) return
+
+      this.demoMarkerCache.set(cacheKey, resolvedMarkers)
+      this.demoMarkers = resolvedMarkers
+
+      if (this.map) {
+        this.syncInteractiveDemoMarkers()
+        return
+      }
+
+      const center = `${viewport.lng},${viewport.lat},${viewport.zoom},0`
+      this.loadStaticMap(this.staticMapUrl(center, width, height, true), viewport)
+    })
+  }
+
+  demoMarkerCacheKey(viewport, width, height) {
+    return [
+      viewport.lng.toFixed(3),
+      viewport.lat.toFixed(3),
+      viewport.zoom.toFixed(2),
+      width,
+      height
+    ].join(":")
+  }
+
+  async filterValidDemoMarkers(markers) {
+    const validatedMarkers = []
+
+    for (const marker of markers) {
+      const resolvedMarker = await this.resolveValidMarkerLocation(marker.lng, marker.lat)
+      if (resolvedMarker) validatedMarkers.push(resolvedMarker)
+    }
+
+    return validatedMarkers
+  }
+
+  async findResolvedDemoMarkers(candidateCoordinates) {
+    const colors = ["#0d6a41", "#57c885", "#d12f39"]
+    const validatedMarkers = await this.filterValidDemoMarkers(candidateCoordinates)
+
+    return validatedMarkers
+      .slice(0, colors.length)
+      .map((marker, index) => ({ ...marker, color: colors[index] }))
+  }
+
+  async resolveValidMarkerLocation(lng, lat) {
+    try {
+      const params = new URLSearchParams({
+        access_token: this.mapboxToken,
+        language: "pt",
+        limit: 3
+      })
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?${params.toString()}`
+      )
+
+      if (!response.ok) return null
+
+      const data = await response.json()
+      const features = Array.isArray(data.features) ? data.features : []
+
+      for (const feature of features) {
+        if (!this.landFeature(feature)) continue
+
+        const center = Array.isArray(feature.center) ? feature.center : null
+        if (center && center.length === 2) {
+          return { lng: center[0], lat: center[1] }
+        }
+
+        return { lng, lat }
+      }
+
+      return null
+    } catch (_error) {
+      return null
+    }
+  }
+
+  landFeature(feature) {
+    if (!feature) return false
+
+    const validPlaceTypes = ["address", "street", "neighborhood", "locality", "place", "district", "poi"]
+    const placeTypes = Array.isArray(feature.place_type) ? feature.place_type : []
+    const contextTexts = Array.isArray(feature.context)
+      ? feature.context.map((item) => `${item.id || ""} ${item.text || ""}`.toLowerCase()).join(" ")
+      : ""
+    const featureText = `${feature.text || ""} ${feature.place_name || ""}`.toLowerCase()
+    const rejectsWater = /(ocean|sea|water|praia|beach|mar|atlantic)/.test(`${featureText} ${contextTexts}`)
+
+    return placeTypes.some((type) => validPlaceTypes.includes(type)) && !rejectsWater
   }
 
   coordinateFromScreenPoint(viewport, width, height, xRatio, yRatio) {
