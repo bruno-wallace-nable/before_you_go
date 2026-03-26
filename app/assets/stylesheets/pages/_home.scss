@@ -98,7 +98,7 @@
 }
 
 .hero-section .flip-card-inner {
-  min-height: clamp(483px, calc(100svh - 187px), 621px);
+  min-height: clamp(520px, calc(100svh - 160px), 660px);
 }
 
 .hero-section .flip-card-front,
@@ -184,7 +184,7 @@
 
 .hero-actions {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   margin: 0;
 }
 
@@ -233,7 +233,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  margin-top: 0;
+  margin-top: 6px;
 }
 
 .hero-primary-cta,
