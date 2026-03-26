@@ -104,13 +104,26 @@
 .hero-section .flip-card-back {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 18px;
   border-radius: 22px;
+  overflow-y: hidden;
+}
+
+.hero-section .flip-card-front {
+  justify-content: center;
 }
 
 .hero-section .flip-card-front-header {
   margin-bottom: 8px;
+}
+
+.hero-section .user-reports-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding-right: 4px;
 }
 
 .hero-badge {
