@@ -85,6 +85,7 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   padding: 18px;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.82);
@@ -115,7 +116,7 @@
 }
 
 .hero-section .flip-card-front-header {
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .hero-section .user-reports-list {
@@ -157,9 +158,9 @@
 
 .hero-title,
 .hero-content h1 {
-  margin: 0 0 6px;
-  font-size: clamp(0.625rem, 1.95vw, 1.225rem);
-  line-height: 1.01;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 0.96;
   font-weight: 800;
   letter-spacing: -0.045em;
   color: #0e1a33;
@@ -175,14 +176,16 @@
 
 .hero-subtitle {
   max-width: 540px;
-  margin: 0 0 10px;
-  font-size: 0.88rem;
-  line-height: 1.48;
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.6;
   color: #5f6f8f;
 }
 
 .hero-actions {
-  margin-bottom: 18px;
+  display: grid;
+  gap: 14px;
+  margin: 0;
 }
 
 .home-search-wrapper {
@@ -190,7 +193,7 @@
 }
 
 .home-search-wrapper .search-bar {
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .home-search-wrapper .search-bar,
@@ -219,9 +222,9 @@
 }
 
 .search-helper-text {
-  margin: 8px 2px 0;
+  margin: 0 2px;
   font-size: 0.74rem;
-  line-height: 1.38;
+  line-height: 1.5;
   color: #7c8ba8;
 }
 
@@ -230,7 +233,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 0;
 }
 
 .hero-primary-cta,
@@ -282,11 +285,11 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 0;
+  margin-top: auto;
 }
 
 .mini-stat {
-  padding: 8px 10px 8px;
+  padding: 12px 12px 14px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.84);
   border: 1px solid rgba(198, 209, 233, 0.74);
@@ -306,16 +309,16 @@
 
 .mini-stat strong {
   display: block;
-  margin-bottom: 2px;
-  font-size: 0.68rem;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
   font-weight: 800;
   color: #10203f;
 }
 
 .mini-stat span {
   display: block;
-  font-size: 0.65rem;
-  line-height: 1.28;
+  font-size: 0.86rem;
+  line-height: 1.42;
   color: #65738f;
 }
 
@@ -987,7 +990,7 @@
   }
 
   .hero-title {
-    font-size: clamp(0.6rem, 3.5vw, 1.225rem);
+    font-size: clamp(1.6rem, 6vw, 2.5rem);
   }
 
   .hero-content {
@@ -997,7 +1000,7 @@
   }
 
   .hero-section .flip-card-inner {
-    min-height: 520px;
+    min-height: 560px;
   }
 
   .hero-map-stage {
@@ -1031,8 +1034,20 @@
     border-radius: 18px;
   }
 
+  .hero-section .flip-card-front,
+  .hero-section .flip-card-back {
+    gap: 16px;
+    padding: 16px 14px 14px;
+  }
+
   .hero-section .flip-card-inner {
-    min-height: 440px;
+    min-height: 500px;
+  }
+
+  .hero-title {
+    white-space: normal;
+    text-wrap: balance;
+    line-height: 1.02;
   }
 
   .home-search-wrapper .search-input-wrapper {
