@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["popup"]
+  static targets = ["popup", "geolocateBtn"]
 
   connect() {
     mapboxgl.accessToken = this.element.dataset.mapboxKey
@@ -56,6 +56,10 @@ export default class extends Controller {
     })
 
     this.map.on("click", (e) => this.clickMap(e))
+
+    this.map.on("dragstart", () => {
+      if (this.hasGeolocateBtnTarget) this.geolocateBtnTarget.style.opacity = "1"
+    })
 
     this.map.on("mouseenter", "poi-label", () => {
       this.map.getCanvas().style.cursor = "pointer"
@@ -194,8 +198,13 @@ export default class extends Controller {
   geolocate() {
     if (!navigator.geolocation) return
 
+    const btn = this.hasGeolocateBtnTarget ? this.geolocateBtnTarget : null
+    if (btn) btn.classList.add("geolocate-button--loading")
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        if (btn) btn.classList.remove("geolocate-button--loading")
+
         const lat = position.coords.latitude
         const lng = position.coords.longitude
 
@@ -212,8 +221,13 @@ export default class extends Controller {
           zoom: 14,
           speed: 1.5
         })
+
+        this.map.once("moveend", () => {
+          if (btn) btn.style.opacity = "0"
+        })
       },
       (error) => {
+        if (btn) btn.classList.remove("geolocate-button--loading")
         console.error("Geolocation error:", error.code, error.message)
       },
       { timeout: 10000 }
