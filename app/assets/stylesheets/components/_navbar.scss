@@ -52,6 +52,20 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-left: auto;
+}
+
+.navbar-primary-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
 }
 
 .navbar-link {
@@ -67,6 +81,12 @@
 .navbar-link:hover {
   background: #f2f4f7;
   color: #101828;
+}
+
+.navbar-link-language {
+  padding: 10px 8px;
+  min-width: 42px;
+  text-align: center;
 }
 
 .navbar-link-outline {
@@ -131,6 +151,11 @@
   }
 
   .navbar-right {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .navbar-primary-links {
     flex-wrap: wrap;
     justify-content: center;
   }
