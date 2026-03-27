@@ -37,14 +37,6 @@ class Place < ApplicationRecord
     end
   end
 
-  def status_label
-    case status
-    when "positive" then "Safe"
-    when "negative" then "Unsafe"
-    else "Neutral"
-    end
-  end
-
   def pin_color
     return "gray" if reports_count.zero?
 
