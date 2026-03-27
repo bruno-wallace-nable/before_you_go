@@ -12,6 +12,7 @@ export default class extends Controller {
     const params = new URLSearchParams(window.location.search)
     const lat = parseFloat(params.get("lat"))
     const lng = parseFloat(params.get("lng"))
+    const focusName = params.get("name") || ""
     const hasFocus = !isNaN(lat) && !isNaN(lng)
 
     this.map = new mapboxgl.Map({
@@ -37,7 +38,7 @@ export default class extends Controller {
 
     this.map.once("load", () => {
       if (hasFocus) {
-        this.map.flyTo({ center: [lng, lat], zoom: 15, speed: 1.5 })
+        this.zoomToPlace({ detail: { lat, lng, name: focusName } })
         return
       }
 
@@ -90,10 +91,7 @@ export default class extends Controller {
     const lng = parseFloat(event.currentTarget.dataset.lng)
     const placeId = event.currentTarget.dataset.placeId
 
-    if (this.activePopup) {
-      this.activePopup.remove()
-      this.activePopup = null
-    }
+    this.clearActivePopup()
 
     this.map.flyTo({
       center: [lng, lat],
@@ -117,7 +115,7 @@ export default class extends Controller {
 
     // Try to find an app place by name first (before "—" is the place name)
     const searchTerm = name.split("—")[0].trim().toLowerCase()
-    const nameMatch = this.markers.find(m =>
+    const nameMatch = searchTerm && this.markers.find(m =>
       m.name && (
         m.name.toLowerCase().includes(searchTerm) ||
         searchTerm.includes(m.name.toLowerCase())
@@ -125,7 +123,7 @@ export default class extends Controller {
     )
 
     if (nameMatch && nameMatch.marker.getPopup()) {
-      if (this.activePopup) { this.activePopup.remove(); this.activePopup = null }
+      this.clearActivePopup()
       const pos = nameMatch.marker.getLngLat()
       this.map.flyTo({ center: [pos.lng, pos.lat], zoom: 15, speed: 1.5, padding: { top: 180, bottom: 40, left: 40, right: 40 } })
       this.map.once("moveend", () => {
@@ -151,7 +149,7 @@ export default class extends Controller {
       })
 
       if (existingMarker && existingMarker.marker.getPopup()) {
-        if (this.activePopup) { this.activePopup.remove(); this.activePopup = null }
+        this.clearActivePopup()
         const popup = existingMarker.marker.getPopup()
         popup.addTo(this.map)
         this.activePopup = popup
@@ -162,33 +160,9 @@ export default class extends Controller {
         .then(res => res.json())
         .then(data => {
           const address = data.features[0]?.place_name || ""
-
           new mapboxgl.Popup({ closeButton: true, closeOnClick: true, maxWidth: "420px" })
             .setLngLat([lng, lat])
-            .setHTML(`
-              <div class="map-popup-card">
-                <div class="map-popup-status map-popup-status--neutral"></div>
-                <div class="map-popup-body">
-                  <div class="map-popup-header">
-                    <span class="map-popup-badge">Atenção</span>
-                    <h3 class="map-popup-title">${this.escape(name)}</h3>
-                  </div>
-                  <p class="map-popup-text">Ainda não há relatos para este local.</p>
-                  <div class="map-popup-footer">
-                    <button
-                      type="button"
-                      class="map-popup-button"
-                      data-action="click->map#addPlace"
-                      data-name="${this.escape(name)}"
-                      data-address="${this.escape(address)}"
-                      data-lat="${lat}"
-                      data-lng="${lng}">
-                      Adicionar primeira review
-                    </button>
-                  </div>
-                </div>
-              </div>
-            `)
+            .setHTML(this.buildPopupHTML(name, address, lat, lng))
             .addTo(this.map)
         })
         .catch(err => console.error("Erro ao buscar endereço:", err))
@@ -234,6 +208,40 @@ export default class extends Controller {
     )
   }
 
+  clearActivePopup() {
+    if (this.activePopup) {
+      this.activePopup.remove()
+      this.activePopup = null
+    }
+  }
+
+  buildPopupHTML(name, address, lat, lng) {
+    return `
+      <div class="map-popup-card">
+        <div class="map-popup-status map-popup-status--neutral"></div>
+        <div class="map-popup-body">
+          <div class="map-popup-header">
+            <span class="map-popup-badge">Atenção</span>
+            <h3 class="map-popup-title">${this.escape(name)}</h3>
+          </div>
+          <p class="map-popup-text">Ainda não há relatos para este local.</p>
+          <div class="map-popup-footer">
+            <button
+              type="button"
+              class="map-popup-button"
+              data-action="click->map#addPlace"
+              data-name="${this.escape(name)}"
+              data-address="${this.escape(address)}"
+              data-lat="${lat}"
+              data-lng="${lng}">
+              Adicionar primeira review
+            </button>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
   escape(str) {
     return String(str)
       .replace(/&/g, "&amp;")
@@ -254,40 +262,9 @@ export default class extends Controller {
     const lng = event.lngLat.lng
     const lat = event.lngLat.lat
 
-    new mapboxgl.Popup({
-      closeButton: true,
-      closeOnClick: true,
-      maxWidth: "420px"
-    })
+    new mapboxgl.Popup({ closeButton: true, closeOnClick: true, maxWidth: "420px" })
       .setLngLat(event.lngLat)
-      .setHTML(`
-        <div class="map-popup-card">
-          <div class="map-popup-status map-popup-status--neutral"></div>
-
-          <div class="map-popup-body">
-            <div class="map-popup-header">
-              <span class="map-popup-badge">Atenção</span>
-              <h3 class="map-popup-title">${this.escape(name)}</h3>
-            </div>
-
-            <p class="map-popup-text">
-              Ainda não há relatos para este local.
-            </p>
-
-            <div class="map-popup-footer">
-              <button
-                type="button"
-                class="map-popup-button"
-                data-action="click->map#addPlace"
-                data-name="${this.escape(name)}"
-                data-lat="${lat}"
-                data-lng="${lng}">
-                Adicionar primeira review
-              </button>
-            </div>
-          </div>
-        </div>
-      `)
+      .setHTML(this.buildPopupHTML(name, "", lat, lng))
       .addTo(this.map)
   }
 

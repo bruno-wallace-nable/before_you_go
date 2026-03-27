@@ -132,7 +132,7 @@ export default class extends Controller {
         if (mapEl) {
           this.dispatch("placeSelected", { detail: { lat, lng, name: fullName } })
         } else {
-          window.location.href = `${prefix}/places?lat=${lat}&lng=${lng}`
+          window.location.href = `${prefix}/places?lat=${lat}&lng=${lng}&name=${encodeURIComponent(fullName)}`
         }
       })
       .catch(() => {

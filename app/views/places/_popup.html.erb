@@ -1,5 +1,3 @@
-<% portuguese = I18n.locale.to_s == "pt-BR" %>
-
 <% status_class =
      case place.status
      when "positive" then "map-popup-status--positive"
@@ -8,7 +6,7 @@
      end %>
 
 <% badge_text =
-     if portuguese
+     if portuguese?
        case place.status
        when "positive" then "Local seguro"
        when "negative" then "Evitar"
@@ -36,12 +34,12 @@
     </div>
 
     <p class="map-popup-text">
-      <%= latest_report_text.presence || (portuguese ? "Ainda não há relatos para este local." : "There are no reports for this place yet.") %>
+      <%= latest_report_text.presence || (portuguese? ? "Ainda não há relatos para este local." : "There are no reports for this place yet.") %>
     </p>
 
     <div class="map-popup-footer">
       <%= link_to(
-            portuguese ? "Ver detalhes" : "View details",
+            portuguese? ? "Ver detalhes" : "View details",
             place_path(place),
             class: "map-popup-button"
           ) %>

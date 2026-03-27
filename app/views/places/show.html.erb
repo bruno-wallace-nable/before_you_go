@@ -1,42 +1,20 @@
 <% query = params[:query].to_s.strip %>
-<% portuguese = I18n.locale.to_s == "pt-BR" %>
-
 <% back_label =
       if query.present?
-        portuguese ? "← Voltar aos resultados" : "← Back to results"
+        portuguese? ? "← Voltar aos resultados" : "← Back to results"
       else
-        portuguese ? "← Voltar para o mapa" : "← Back to map"
-      end %>
-
-<% category_options =
-      if portuguese
-        ["Ambiente", "Segurança", "Preconceito", "Assédio", "Violência", "Outros"]
-      else
-        ["Environment", "Safety", "Discrimination", "Harassment", "Violence", "Other"]
-      end %>
-
-<% status_options =
-      if portuguese
-        [["Positivo", "positive"], ["Negativo", "negative"]]
-      else
-        [["Positive", "positive"], ["Negative", "negative"]]
+        portuguese? ? "← Voltar para o mapa" : "← Back to map"
       end %>
 
 <% status_key = @place.status %>
-<% status_label =
-      case status_key
-      when "positive" then (portuguese ? "Seguro" : "Safe")
-      when "negative" then (portuguese ? "Evitar" : "Avoid")
-      else
-        portuguese ? "Atenção" : "Attention"
-      end %>
+<% status_label = place_status_label(@place) %>
 
 <% positive_count = @reports.count { |report| report.status == "positive" } %>
 <% negative_count = @reports.count { |report| report.status == "negative" } %>
 <% latest_report = @reports.max_by(&:created_at) %>
 <% latest_report_label =
       if latest_report.present?
-        portuguese ? latest_report.created_at.strftime("%d/%m/%Y") : latest_report.created_at.strftime("%b %d, %Y")
+        portuguese? ? latest_report.created_at.strftime("%d/%m/%Y") : latest_report.created_at.strftime("%b %d, %Y")
       else
         "—"
       end %>
@@ -64,7 +42,7 @@
           <p class="place-hero-address"><%= @place.address %></p>
 
           <p class="place-hero-summary">
-            <%= if portuguese
+            <%= if portuguese?
                   "Veja a leitura atual do local, o histórico recente de relatos da comunidade e adicione contexto novo quando necessário."
                 else
                   "Review the current read of this place, recent community reports, and add fresh context when needed."
@@ -78,11 +56,11 @@
                 class="place-directions-link place-directions-link--secondary"
                 data-controller="clipboard"
                 data-clipboard-text-value="<%= @place.address %>"
-                data-clipboard-success-value="<%= portuguese ? "Endereço copiado" : "Address copied" %>"
-                data-clipboard-default-label-value="<%= portuguese ? "Copiar endereço" : "Copy address" %>"
+                data-clipboard-success-value="<%= portuguese? ? "Endereço copiado" : "Address copied" %>"
+                data-clipboard-default-label-value="<%= portuguese? ? "Copiar endereço" : "Copy address" %>"
                 data-action="click->clipboard#copy"
               >
-                <span data-clipboard-target="label"><%= portuguese ? "Copiar endereço" : "Copy address" %></span>
+                <span data-clipboard-target="label"><%= portuguese? ? "Copiar endereço" : "Copy address" %></span>
               </button>
             </div>
           <% end %>
@@ -91,22 +69,22 @@
         <div class="place-hero-metrics">
           <div class="place-hero-metric">
             <strong><%= @reports.size %></strong>
-            <span><%= portuguese ? "relatos totais" : "total reports" %></span>
+            <span><%= portuguese? ? "relatos totais" : "total reports" %></span>
           </div>
 
           <div class="place-hero-metric">
             <strong><%= positive_count %></strong>
-            <span><%= portuguese ? "positivos" : "positive" %></span>
+            <span><%= portuguese? ? "positivos" : "positive" %></span>
           </div>
 
           <div class="place-hero-metric">
             <strong><%= negative_count %></strong>
-            <span><%= portuguese ? "negativos" : "negative" %></span>
+            <span><%= portuguese? ? "negativos" : "negative" %></span>
           </div>
 
           <div class="place-hero-metric">
             <strong><%= latest_report_label %></strong>
-            <span><%= portuguese ? "última atualização" : "latest update" %></span>
+            <span><%= portuguese? ? "última atualização" : "latest update" %></span>
           </div>
         </div>
       </section>
@@ -116,22 +94,22 @@
           <section class="place-section-card">
             <div class="place-section-heading">
               <div>
-                <span class="place-section-eyebrow"><%= portuguese ? "Leitura atual" : "Current read" %></span>
-                <h2><%= portuguese ? "O que a comunidade está sinalizando" : "What the community is signaling" %></h2>
+                <span class="place-section-eyebrow"><%= portuguese? ? "Leitura atual" : "Current read" %></span>
+                <h2><%= portuguese? ? "O que a comunidade está sinalizando" : "What the community is signaling" %></h2>
               </div>
             </div>
 
             <div class="place-signal-grid">
               <div class="place-signal-card place-signal-card--<%= status_key %>">
-                <span class="signal-card-label"><%= portuguese ? "Status do lugar" : "Place status" %></span>
+                <span class="signal-card-label"><%= portuguese? ? "Status do lugar" : "Place status" %></span>
                 <strong><%= status_label %></strong>
                 <p>
                   <%= if status_key == "positive"
-                        portuguese ? "Os relatos recentes tendem a ser mais favoráveis." : "Recent reports lean more favorable."
+                        portuguese? ? "Os relatos recentes tendem a ser mais favoráveis." : "Recent reports lean more favorable."
                       elsif status_key == "negative"
-                        portuguese ? "Os relatos recentes indicam mais risco ou desconforto." : "Recent reports indicate more risk or discomfort."
+                        portuguese? ? "Os relatos recentes indicam mais risco ou desconforto." : "Recent reports indicate more risk or discomfort."
                       else
-                        portuguese ? "Ainda não há consenso suficiente nos relatos." : "There is not enough consensus in the reports yet."
+                        portuguese? ? "Ainda não há consenso suficiente nos relatos." : "There is not enough consensus in the reports yet."
                       end %>
                 </p>
 
@@ -139,58 +117,58 @@
                   <% if @place.status == "positive" %>
                     <div class="place-status-legend-item">
                       <span class="place-status-legend-pin place-status-legend-pin--green"></span>
-                      <span><%= portuguese ? "Local seguro" : "Safe place" %></span>
+                      <span><%= portuguese? ? "Local seguro" : "Safe place" %></span>
                     </div>
 
                     <div class="place-status-legend-item">
                       <span class="place-status-legend-pin place-status-legend-pin--yellow"></span>
-                      <span><%= portuguese ? "Sua localização" : "Your location" %></span>
+                      <span><%= portuguese? ? "Sua localização" : "Your location" %></span>
                     </div>
 
                     <div class="place-status-legend-item">
                       <span class="place-status-legend-pin place-status-legend-pin--red"></span>
-                      <span><%= portuguese ? "Perigoso" : "Dangerous" %></span>
+                      <span><%= portuguese? ? "Perigoso" : "Dangerous" %></span>
                     </div>
 
                   <% elsif @place.status == "negative" %>
                     <div class="place-status-legend-item">
                       <span class="place-status-legend-pin place-status-legend-pin--red"></span>
-                      <span><%= portuguese ? "Perigoso" : "Dangerous" %></span>
+                      <span><%= portuguese? ? "Perigoso" : "Dangerous" %></span>
                     </div>
 
                     <div class="place-status-legend-item">
                       <span class="place-status-legend-pin place-status-legend-pin--yellow"></span>
-                      <span><%= portuguese ? "Sua localização" : "Your location" %></span>
+                      <span><%= portuguese? ? "Sua localização" : "Your location" %></span>
                     </div>
 
                     <div class="place-status-legend-item">
                       <span class="place-status-legend-pin place-status-legend-pin--green"></span>
-                      <span><%= portuguese ? "Local seguro" : "Safe place" %></span>
+                      <span><%= portuguese? ? "Local seguro" : "Safe place" %></span>
                     </div>
 
                   <% else %>
                     <div class="place-status-legend-item">
                       <span class="place-status-legend-pin place-status-legend-pin--green"></span>
-                      <span><%= portuguese ? "Local seguro" : "Safe place" %></span>
+                      <span><%= portuguese? ? "Local seguro" : "Safe place" %></span>
                     </div>
 
                     <div class="place-status-legend-item">
                       <span class="place-status-legend-pin place-status-legend-pin--yellow"></span>
-                      <span><%= portuguese ? "Sua localização" : "Your location" %></span>
+                      <span><%= portuguese? ? "Sua localização" : "Your location" %></span>
                     </div>
 
                     <div class="place-status-legend-item">
                       <span class="place-status-legend-pin place-status-legend-pin--red"></span>
-                      <span><%= portuguese ? "Perigoso" : "Dangerous" %></span>
+                      <span><%= portuguese? ? "Perigoso" : "Dangerous" %></span>
                     </div>
                   <% end %>
                 </div>
               </div>
 
               <div class="place-signal-card">
-                <span class="signal-card-label"><%= portuguese ? "Endereço" : "Address" %></span>
+                <span class="signal-card-label"><%= portuguese? ? "Endereço" : "Address" %></span>
                 <strong><%= @place.address %></strong>
-                <p><%= portuguese ? "Confirme se este é exatamente o local que você quer revisar." : "Confirm this is exactly the location you want to review." %></p>
+                <p><%= portuguese? ? "Confirme se este é exatamente o local que você quer revisar." : "Confirm this is exactly the location you want to review." %></p>
               </div>
             </div>
           </section>
@@ -198,16 +176,16 @@
           <section class="place-section-card">
             <div class="place-section-heading">
               <div>
-                <span class="place-section-eyebrow"><%= portuguese ? "Relatos" : "Reports" %></span>
-                <h2><%= portuguese ? "Histórico recente da comunidade" : "Recent community history" %></h2>
+                <span class="place-section-eyebrow"><%= portuguese? ? "Relatos" : "Reports" %></span>
+                <h2><%= portuguese? ? "Histórico recente da comunidade" : "Recent community history" %></h2>
               </div>
               <span class="place-section-count"><%= @reports.size %></span>
             </div>
 
             <% if @reports.empty? %>
               <div class="place-empty-state">
-                <h3><%= portuguese ? "Ainda não há relatos" : "No reports yet" %></h3>
-                <p><%= portuguese ? "Se você conhece este local, adicione o primeiro relato para ajudar a próxima pessoa a decidir melhor." : "If you know this place, add the first report to help the next person decide better." %></p>
+                <h3><%= portuguese? ? "Ainda não há relatos" : "No reports yet" %></h3>
+                <p><%= portuguese? ? "Se você conhece este local, adicione o primeiro relato para ajudar a próxima pessoa a decidir melhor." : "If you know this place, add the first report to help the next person decide better." %></p>
               </div>
             <% else %>
               <div class="place-reports-list">
@@ -215,13 +193,13 @@
                   <% report_status_label =
                        case report.status
                        when "positive"
-                         portuguese ? "Positivo" : "Positive"
+                         portuguese? ? "Positivo" : "Positive"
                        when "negative"
-                         portuguese ? "Negativo" : "Negative"
+                         portuguese? ? "Negativo" : "Negative"
                        else
-                         portuguese ? "Indefinido" : "Undefined"
+                         portuguese? ? "Indefinido" : "Undefined"
                        end %>
-                  <% report_time_label = portuguese ? report.created_at.strftime("%d/%m/%Y • %H:%M") : report.created_at.strftime("%b %d, %Y • %H:%M") %>
+                  <% report_time_label = portuguese? ? report.created_at.strftime("%d/%m/%Y • %H:%M") : report.created_at.strftime("%b %d, %Y • %H:%M") %>
 
                   <article class="report-card report-card--<%= report.status %>">
                     <div class="report-card-top">
@@ -233,12 +211,12 @@
                         <span class="report-time"><%= report_time_label %></span>
                         <% if user_signed_in? && report.user == current_user %>
                           <div class="report-action-btns">
-                            <%= link_to(portuguese ? "Editar" : "Edit",
+                            <%= link_to(portuguese? ? "Editar" : "Edit",
                                   edit_place_report_path(@place, report),
                                   class: "report-action-btn report-action-btn--edit") %>
-                            <%= link_to(portuguese ? "Remover" : "Delete",
+                            <%= link_to(portuguese? ? "Remover" : "Delete",
                                   place_report_path(@place, report),
-                                  data: { turbo_method: :delete, turbo_confirm: portuguese ? "Tem certeza?" : "Are you sure?" },
+                                  data: { turbo_method: :delete, turbo_confirm: portuguese? ? "Tem certeza?" : "Are you sure?" },
                                   class: "report-action-btn report-action-btn--delete") %>
                           </div>
                         <% end %>
@@ -256,13 +234,13 @@
 
         <aside class="place-detail-sidebar">
           <div class="place-action-card place-action-card--simple">
-            <span class="place-section-eyebrow"><%= portuguese ? "Contribuir" : "Contribute" %></span>
+            <span class="place-section-eyebrow"><%= portuguese? ? "Contribuir" : "Contribute" %></span>
 
             <% if user_signed_in? %>
               <% if @user_report.present? %>
-                <h2><%= portuguese ? "Seu relato já foi enviado" : "Your report has already been submitted" %></h2>
+                <h2><%= portuguese? ? "Seu relato já foi enviado" : "Your report has already been submitted" %></h2>
                 <p class="place-user-report-intro">
-                  <%= if portuguese
+                  <%= if portuguese?
                         "Você já deixou uma avaliação para este local. Para manter a leitura justa da comunidade, permitimos apenas um relato por pessoa em cada lugar."
                       else
                         "You have already submitted a report for this place. To keep the community reading fair, we allow only one report per person in each place."
@@ -272,34 +250,34 @@
                 <div class="place-user-report-locked">
                   <div class="place-user-report-summary">
                     <div class="place-user-report-row">
-                      <span class="place-user-report-key"><%= portuguese ? "Categoria" : "Category" %></span>
+                      <span class="place-user-report-key"><%= portuguese? ? "Categoria" : "Category" %></span>
                       <p class="place-user-report-value"><%= @user_report.translated_category.presence || "—" %></p>
                     </div>
 
                     <div class="place-user-report-row">
-                      <span class="place-user-report-key"><%= portuguese ? "Tipo do relato" : "Report type" %></span>
+                      <span class="place-user-report-key"><%= portuguese? ? "Tipo do relato" : "Report type" %></span>
                       <p class="place-user-report-value place-user-report-value--status">
                         <%= case @user_report.status
                             when "positive"
-                              portuguese ? "Positivo" : "Positive"
+                              portuguese? ? "Positivo" : "Positive"
                             when "negative"
-                              portuguese ? "Negativo" : "Negative"
+                              portuguese? ? "Negativo" : "Negative"
                             else
-                              portuguese ? "Indefinido" : "Undefined"
+                              portuguese? ? "Indefinido" : "Undefined"
                             end %>
                       </p>
                     </div>
 
                     <div class="place-user-report-row place-user-report-row--description">
-                      <span class="place-user-report-key"><%= portuguese ? "Descrição" : "Description" %></span>
+                      <span class="place-user-report-key"><%= portuguese? ? "Descrição" : "Description" %></span>
                       <p class="place-user-report-description"><%= @user_report.translated_description.presence || "—" %></p>
                     </div>
                   </div>
                 </div>
               <% else %>
-                <h2><%= portuguese ? "Adicionar um relato" : "Add a report" %></h2>
+                <h2><%= portuguese? ? "Adicionar um relato" : "Add a report" %></h2>
                 <p>
-                  <%= if portuguese
+                  <%= if portuguese?
                         "Compartilhe um contexto recente para manter a leitura deste lugar mais útil para outras pessoas."
                       else
                         "Share recent context to keep the reading of this place more useful for other people."
@@ -309,38 +287,38 @@
                 <%= form_with model: [@place, @report], local: true, class: "place-report-form-simple" do |f| %>
                   <% if @report.errors.any? %>
                     <div class="place-form-errors">
-                      <p><strong><%= portuguese ? "Não foi possível enviar seu relato." : "We couldn't submit your report." %></strong></p>
+                      <p><strong><%= portuguese? ? "Não foi possível enviar seu relato." : "We couldn't submit your report." %></strong></p>
                       <p><%= @report.errors.full_messages.to_sentence %></p>
                     </div>
                   <% end %>
 
                   <div class="place-form-group">
-                    <%= f.label :category, portuguese ? "Categoria" : "Category" %>
-                    <%= f.select :category, category_options, {}, class: "place-form-control" %>
+                    <%= f.label :category, portuguese? ? "Categoria" : "Category" %>
+                    <%= f.select :category, report_category_options, {}, class: "place-form-control" %>
                   </div>
 
                   <div class="place-form-group">
-                    <%= f.label :status, portuguese ? "Tipo do relato" : "Report type" %>
-                    <%= f.select :status, status_options, {}, class: "place-form-control" %>
+                    <%= f.label :status, portuguese? ? "Tipo do relato" : "Report type" %>
+                    <%= f.select :status, report_status_options, {}, class: "place-form-control" %>
                   </div>
 
                   <div class="place-form-group">
-                    <%= f.label :description, portuguese ? "Descrição" : "Description" %>
+                    <%= f.label :description, portuguese? ? "Descrição" : "Description" %>
                     <%= f.text_area :description,
                           rows: 6,
                           class: "place-form-control place-form-control--textarea",
-                          placeholder: (portuguese ? "Descreva o que você percebeu neste local." : "Describe what you noticed in this place.") %>
+                          placeholder: (portuguese? ? "Descreva o que você percebeu neste local." : "Describe what you noticed in this place.") %>
                   </div>
 
-                  <%= f.submit (portuguese ? "Enviar relato" : "Send report"), class: "place-submit-button" %>
+                  <%= f.submit (portuguese? ? "Enviar relato" : "Send report"), class: "place-submit-button" %>
                 <% end %>
               <% end %>
             <% else %>
-              <h2><%= portuguese ? "Adicionar um relato" : "Add a report" %></h2>
-              <p><%= portuguese ? "Faça login para compartilhar um relato e contribuir com o mapa da comunidade." : "Sign in to share a report and contribute to the community map." %></p>
+              <h2><%= portuguese? ? "Adicionar um relato" : "Add a report" %></h2>
+              <p><%= portuguese? ? "Faça login para compartilhar um relato e contribuir com o mapa da comunidade." : "Sign in to share a report and contribute to the community map." %></p>
 
               <div class="place-signin-card">
-                <%= link_to (portuguese ? "Entrar para contribuir" : "Sign in to contribute"), new_user_session_path(return_to: request.fullpath), class: "place-submit-button" %>
+                <%= link_to (portuguese? ? "Entrar para contribuir" : "Sign in to contribute"), new_user_session_path(return_to: request.fullpath), class: "place-submit-button" %>
               </div>
             <% end %>
           </div>
