@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="<%= I18n.locale %>">
   <head>
-    <title><%= content_for(:title) || "Before You Go - Mapa de Segurança" %></title>
+    <title><%= content_for?(:title) ? yield(:title) : "Before You Go - Mapa de Segurança" %></title>
 
     <meta property="og:title" content="<%= content_for(:title) || "Before You Go - Mapa de Segurança" %>">
     <meta property="og:description" content="Mapa comunitário de segurança. Consulte relatos de incidentes em bares e restaurantes antes de sair.">
