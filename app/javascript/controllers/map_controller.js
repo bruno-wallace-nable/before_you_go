@@ -27,7 +27,7 @@ export default class extends Controller {
       const popupEl = this.popupTargets.find((el) => el.dataset.placeId == marker.id)
       const markerColor = this.resolveMarkerColor(marker.pin_color)
 
-      const popup = popupEl ? new mapboxgl.Popup().setHTML(popupEl.innerHTML) : null
+      const popup = popupEl ? new mapboxgl.Popup({ maxWidth: "320px" }).setHTML(popupEl.innerHTML) : null
       if (popup) {
         popup.on("open", () => {
           if (this.activePopup && this.activePopup !== popup) this.activePopup.remove()
