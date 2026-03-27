@@ -9,7 +9,7 @@ class PlacesController < ApplicationController
       @places = with_reports.where("name ILIKE :query OR address ILIKE :query", query: sql_query)
       @map_places = Place.where.not(latitude: nil, longitude: nil).includes(:reports)
     else
-      @places = with_reports.order(created_at: :desc).limit(4) # UI
+      @places = with_reports.joins(:reports).distinct.order(created_at: :desc).limit(4) # UI
       @map_places = with_reports # MAPA
     end
 
