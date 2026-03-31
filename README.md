@@ -119,7 +119,7 @@ User → searches location → views map → checks safety status → decides to
 
 ## 🚧 Status
 
-Deployed in https://before-you-go-app-3d4a3f7fe691.herokuapp.com
+Deployed in http://www.beforeyougo.me/
 
 
 ## 🔗 Live Demo
