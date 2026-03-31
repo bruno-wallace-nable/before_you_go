@@ -119,19 +119,8 @@ User → searches location → views map → checks safety status → decides to
 
 ## 🚧 Status
 
-🚀 Currently under development as part of a full-stack web development project.
+Deployed in https://before-you-go-app-3d4a3f7fe691.herokuapp.com
 
----
-
-## 🌍 Future Improvements
-
-* Moderation system
-* AI-based risk detection
-* Real-time alerts
-* Advanced filtering
-* Mobile version
-
----
 
 ## 🔗 Live Demo
 
